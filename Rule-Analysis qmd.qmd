@@ -17,7 +17,8 @@ When you click the **Render** button a document will be generated that includes 
 library(dplyr)
 
 #read csv
-df <- read.csv("CMS Rules.csv", stringsAsFactors = FALSE)
+#df <- read.csv("CMS Rules.csv", stringsAsFactors = FALSE)
+df <- read.csv("FDA Rules.csv", stringsAsFactors = FALSE)
 
 # 2. Convert 'publication_date' to Date format
 df <- df |>
@@ -155,19 +156,30 @@ $$
 Y_i = \alpha + \tau D_i + \beta X_i + \gamma X_i^2 + \sum_{m=1}^{11} \delta_m M_{im} + \theta T_i + \epsilon_i
 $$
 
-**Where:**
+Where:
 
--   ( $$Y_i$$ ): Number of Rules Published in month ( $$i$$ ).
--   ( $$\alpha$$): Intercept term (baseline level of ($$Y$$).
--   ( $$D_i$$ ): Treatment Indicator for month ( $$i $$). $$D_i$$ = 1 if month $$i$$ is after June 2024 and 0 otherwise.
--   ($$X_i$$ ): Running Variable representing the distance from the cutoff (June 2024) for month $i$). Typically measured in months: $X_i$ = Number of months since June 2024
-    -   ($X_i > 0$ ): Post-June 2024 (treatment group)
-    -   ( $X_i < 0$ ): Pre-June 2024 (control group)
--   ( $X_i^2$ ): Quadratic Term to capture potential non-linear trends in the data.
--   ( $M_{im}$ ): Monthly Dummy Variables for each month ( m ) (January to December), excluding one month to avoid multicollinearity (e.g., January as the reference category).
--   ( $\delta_m$ ): Coefficients for each monthly dummy variable, capturing the effect of being in month ( $m$) relative to the reference month.
--   ( $T_i$ ): Presidential Transition Indicator for month ($T_i$): \[ $T_i$ =1 for 2008, 2016, 2020, or 2024 and 0 otherwise.
+-   ($Y_i$): Number of Rules Published in month ($i$).
+
+-   ($\alpha$): Intercept term (baseline level of ($Y$).
+
+-   ($D_i$): Treatment Indicator for month ($i$). $D_i$ = 1 if month $i$ is after June 2024 and 0 otherwise.
+
+-   ($X_i$): Running Variable representing the distance from the cutoff (June 2024) for month $i$). Measured in months: $X_i$ = Number of months since June 2024
+
+-   ($X_i > 0$): Post-June 2024 (treatment group)
+
+-   ($X_i < 0$): Pre-June 2024 (control group)
+
+-   ($X_i^2$): Quadratic Term to capture potential non-linear trends in the data.
+
+-   ($M_{im}$): Monthly Dummy Variables for each month ( $m$, January to December), excluding one month to avoid multicollinearity (January is the reference category).
+
+-   ($\delta_m$): Coefficients for each monthly dummy variable, capturing the effect of being in month ($m$) relative to the reference month.
+
+-   ($T_i$): Presidential Transition Indicator for month ($T_i$): \[ $T_i$ =1 for 2008, 2016, 2020, or 2024 and 0 otherwise.
+
 -   ($\theta$): Coefficient capturing the effect associated with presidential transition years.
+
 -   ($\epsilon_i$): Error Term capturing unobserved factors affecting ($Y_i$).
 
 ```{r}
