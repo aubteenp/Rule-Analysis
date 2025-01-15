@@ -10,15 +10,35 @@ Quarto enables you to weave together content and executable code into a finished
 
 ## Running Code
 
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
-
 ```{r}
 
 library(dplyr)
 
 #read csv
 #df <- read.csv("CMS Rules.csv", stringsAsFactors = FALSE)
-df <- read.csv("FDA Rules.csv", stringsAsFactors = FALSE)
+#df <- read.csv("FDA Rules.csv", stringsAsFactors = FALSE)
+
+#Combining multiple FDA rule viles
+
+# Define the list of file names
+files <- c(
+  "1st FDA pull - 12_18_2024 to 1_4_2016.csv",
+  "2nd FDA pull - 11_25_2005 to 12_28_2015.csv",
+  "3rd FDA pull - 11_25_2005 to 7_19_1999.csv",
+  "4th FDA pull - 7_13_1999 to 1_4_1994.csv"
+)
+
+# Initialize an empty list to store data frames
+list_of_dfs <- list()
+
+# Loop through each file and read it into a data frame
+for (i in seq_along(files)) {
+  tempdf <- read.csv(files[i], stringsAsFactors = FALSE)
+  list_of_dfs[[i]] <- tempdf
+}
+
+# Combine all data frames into one using rbind
+df <- do.call(rbind, list_of_dfs)
 
 # 2. Convert 'publication_date' to Date format
 df <- df |>
