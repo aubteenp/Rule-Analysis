@@ -1,22 +1,27 @@
 ---
-title: "Rule Analysis Quarto"
-format: html
+title: "CMS Rule Analysis Quarto"
+format: pdf
 editor: visual
 ---
 
-## Quarto
+## Intro
 
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+In the summer of 2024, the Supreme Court issued two landmark rulings -- *Ohio v. EPA* on June 27, 2024, and *Loper Bright Enterprises v. Raimondo* on June 28, 2024 -- that transformed the regulatory landscape for federal agencies. In *Ohio v. EPA*, the Court held that an agency\'s failure to adequately respond to significant public comments during the notice-and-comment process renders its rules arbitrary and capricious. The following day, in *Loper Bright v. Raimondo*, the Courtoverruled Chevron deference, directing lower courts to interpret statutory ambiguities independently rather than deferring to agency interpretations. In doing so, the Court substantially reduced agency latitude in interpreting legislative \"gray areas\".
+
+We hypothesize that these decision created an environment where agencies are less likely to publish formal rules. The increased logistical burden of addressing public comments post-*Ohio v. EPA* and the heightened risk of litigation over statutory interpretations post-*Loper Bright* likely discourage rulemaking. To investigate this hypothesis, we employ quantitative methods---specifically, regression-discontinuity and interrupted time series analyses---using the period following the release of Loper Bright Enterprises v. Raimondo (starting June 29, 2024) as a cutoff. This study aims to empirically assess how these Supreme Court rulings have impacted agency rulemaking behavior.
 
 ## Running Code
 
 ```{r}
+#| label: Read in csv files
+#| echo: false
+#| warning: false
 
 library(dplyr)
 
 #read csv
 df <- read.csv("All CMS Rules from 1_14_2025.csv", stringsAsFactors = FALSE)
-#df <- read.csv("FDA Rules.csv", stringsAsFactors = FALSE)
+#df <- read.csv("All FDA Rules 1_14_2025 to 1_4_1994.csv", stringsAsFactors = FALSE)
 
 # 2. Convert 'publication_date' to Date format
 df <- df |>
@@ -26,15 +31,17 @@ df <- df |>
          )
 
 # View the first few rows to verify
-df
+#df
 
 ```
 
 Now, create plots from df data frame
 
 ```{r}
-#| code-title: "Grouping Rules by Year"
+#| label: Grouping Rules by Year and display
 #| echo: false
+#| warning: false
+
 
 library(ggplot2)
 library(lubridate)
@@ -64,11 +71,10 @@ ggplot(rules_per_year,
 
 ```
 
-Now, let's analyze the data broken into its constituent months
+Next, let's analyze the data broken into its constituent months (the first visualization doesn't work yet)
 
 ```{r}
-
-#| code-title: "Grouping Rules by month"
+#| label: Grouping Rules by month and display
 #| echo: false
 
 
@@ -114,10 +120,10 @@ ggplot(rules_per_month_year, aes(x = as.Date(paste(year, month, "01", sep = "-")
   theme_minimal()
 ```
 
-Data Analysis
+The following graph depicts the data broken into consituent months and highlights Presidential transition years.
 
 ```{r}
-#| code-title: "Cleaning Data for Model"
+#| label: Cleaning Data for Model
 #| echo: false
 
 #creates data frame with number of rules published in each month of each year
@@ -164,7 +170,7 @@ ggplot(monthly_counts, aes(x = as.Date(paste(year, month, "01", sep = "-"), form
 
 ```
 
-Regression Discontinuity Analysis
+## Regression Discontinuity Analysis
 
 $$
 Y_i = \alpha + \tau D_i + \beta X_i + \gamma X_i^2 + \sum_{m=1}^{11} \delta_m M_{im} + \theta T_i + \epsilon_i
@@ -180,9 +186,11 @@ Where:
 
 -   ($X_i$): Running Variable representing the distance from the cutoff (June 2024) for month $i$). Measured in months: $X_i$ = Number of months since June 2024
 
--   ($X_i > 0$): Post-June 2024 (treatment group)
+    -   ($X_i > 0$): Post-June 2024 (treatment group)
 
--   ($X_i < 0$): Pre-June 2024 (control group)
+    -   ($X_i < 0$): Pre-June 2024 (control group)
+
+-   ($\beta$): The Treatment Effect
 
 -   ($X_i^2$): Quadratic Term to capture potential non-linear trends in the data.
 
@@ -197,12 +205,14 @@ Where:
 -   ($\epsilon_i$): Error Term capturing unobserved factors affecting ($Y_i$).
 
 ```{r}
+#| label: RD Model
+#| echo: false
 
 library(dplyr)
 library(lubridate)
 
 # Define cutoff date (June 2024)
-cutoff_date <- ymd("2024-06-30")
+cutoff_date <- ymd("2024-06-29")
 
 # Create running variable (distance from cutoff in months)
 rules_per_month_year <- rules_per_month_year |>
@@ -237,6 +247,9 @@ summary(rd_model)
 Now we'll try an ITS model.
 
 ```{r}
+#| label: ITS Model
+#| echo: false
+
 #install.packages("forecast")
 library(forecast)
 library(dplyr)
