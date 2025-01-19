@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Rule Analysis Quarto</title>
+<title>FDA Rule Analysis Quarto</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -47,7 +47,7 @@ ul.task-list li input[type="checkbox"] {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Rule Analysis Quarto</h1>
+<h1 class="title">FDA Rule Analysis Quarto</h1>
 </div>
 
 
@@ -77,11 +77,15 @@ ul.task-list li input[type="checkbox"] {
 </div>
 <p>Next, let’s analyze the data broken into its constituent months (the first visualization doesn’t work yet)</p>
 <div class="cell">
-<div class="cell-output-display">
-<p><img src="Rule-Analysis-qmd_files/figure-html/Grouping%20Rules%20by%20month%20and%20display-1.png" class="img-fluid" width="672"></p>
+<div class="cell-output cell-output-stderr">
+<pre><code>`geom_line()`: Each group consists of only one observation.
+ℹ Do you need to adjust the group aesthetic?</code></pre>
 </div>
 <div class="cell-output-display">
-<p><img src="Rule-Analysis-qmd_files/figure-html/Grouping%20Rules%20by%20month%20and%20display-2.png" class="img-fluid" width="672"></p>
+<p><img src="Rule-Analysis-qmd_files/figure-html/Visualization%20of%20Grouping%20Rules%20by%20month%20and%20display-1.png" class="img-fluid" width="672"></p>
+</div>
+<div class="cell-output-display">
+<p><img src="Rule-Analysis-qmd_files/figure-html/Visualization%20of%20Grouping%20Rules%20by%20month%20and%20display-2.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 <p>The following graph depicts the data broken into consituent months and highlights Presidential transition years.</p>
@@ -127,32 +131,42 @@ lm(formula = count ~ treatment + distance + I(distance^2) + month +
 
 Residuals:
      Min       1Q   Median       3Q      Max 
--15.7981  -3.3547  -0.8305   2.5817  21.0573 
+-15.9969  -3.4676  -0.7539   2.8550  21.0793 
 
 Coefficients:
                 Estimate Std. Error t value Pr(&gt;|t|)    
-(Intercept)    2.241e+00  9.293e-01   2.411  0.01639 *  
-treatment      2.262e-01  1.657e+00   0.136  0.89150    
-distance      -6.171e-02  1.125e-02  -5.484 7.72e-08 ***
-I(distance^2) -9.338e-05  2.959e-05  -3.156  0.00173 ** 
-month.L        1.113e+00  1.002e+00   1.111  0.26750    
-month.Q       -2.655e-01  9.992e-01  -0.266  0.79065    
-month.C        2.511e+00  9.997e-01   2.511  0.01245 *  
-month^4        3.318e-02  9.992e-01   0.033  0.97353    
-month^5        1.601e+00  9.994e-01   1.602  0.10995    
-month^6        1.157e+00  9.992e-01   1.158  0.24754    
-month^7       -2.500e+00  9.994e-01  -2.502  0.01278 *  
-month^8        1.651e+00  9.992e-01   1.652  0.09934 .  
-month^9       -1.751e+00  9.993e-01  -1.752  0.08056 .  
-month^10       8.759e-01  9.992e-01   0.877  0.38131    
-month^11      -3.729e-01  9.994e-01  -0.373  0.70927    
-transition     1.012e+00  9.171e-01   1.104  0.27051    
+(Intercept)    2.442e+00  9.451e-01   2.584  0.01016 *  
+treatment      3.441e+00  2.428e+00   1.417  0.15732    
+distance      -6.039e-02  1.139e-02  -5.303 2.01e-07 ***
+I(distance^2) -9.115e-05  2.991e-05  -3.047  0.00248 ** 
+month.L        1.017e+00  1.025e+00   0.992  0.32191    
+month.Q       -3.346e-01  1.022e+00  -0.328  0.74346    
+month.C        2.708e+00  1.025e+00   2.643  0.00859 ** 
+month^4       -1.013e-02  1.023e+00  -0.010  0.99210    
+month^5        1.645e+00  1.024e+00   1.606  0.10905    
+month^6        1.175e+00  1.025e+00   1.147  0.25231    
+month^7       -2.539e+00  1.025e+00  -2.477  0.01372 *  
+month^8        1.699e+00  1.025e+00   1.658  0.09827 .  
+month^9       -1.833e+00  1.025e+00  -1.788  0.07466 .  
+month^10       9.035e-01  1.025e+00   0.881  0.37868    
+month^11      -3.537e-01  1.025e+00  -0.345  0.73034    
+transition     4.935e-01  9.685e-01   0.510  0.61070    
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-Residual standard error: 5.653 on 368 degrees of freedom
-Multiple R-squared:  0.2938,    Adjusted R-squared:  0.265 
-F-statistic: 10.21 on 15 and 368 DF,  p-value: &lt; 2.2e-16</code></pre>
+Residual standard error: 5.707 on 357 degrees of freedom
+Multiple R-squared:  0.2594,    Adjusted R-squared:  0.2283 
+F-statistic: 8.338 on 15 and 357 DF,  p-value: 2.379e-16</code></pre>
+</div>
+</div>
+<p>Now, let’s visualize the RD regression, displaying the number of rules published in the 7 months before and after the cutoff date</p>
+<div class="cell">
+<div class="cell-output cell-output-stderr">
+<pre><code>`geom_smooth()` using formula = 'y ~ x'
+`geom_smooth()` using formula = 'y ~ x'</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="Rule-Analysis-qmd_files/figure-html/RD%20Visualization-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 <p>Now we’ll try an ITS model.</p>
@@ -198,7 +212,7 @@ F-statistic: 10.21 on 15 and 368 DF,  p-value: &lt; 2.2e-16</code></pre>
 2022   6  11  13   3   8   4   1   6   6   4   5  11
 2023  20   2  11   1   4   0   1   3   3   2   4   5
 2024   2   6   4   2   7   4   3   7  21   5   1   4
-2025   1   0   0   0   0   0   0   0   0   0   0   0</code></pre>
+2025   1                                            </code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Series: ts_rules 
@@ -206,15 +220,15 @@ Regression with ARIMA(1,1,1)(0,0,2)[12] errors
 
 Coefficients:
           ar1      ma1    sma1    sma2  Intervention  TimeAfterIntervention
-      -0.0175  -0.7832  0.0615  0.1058        3.9268                -0.5136
-s.e.   0.0676   0.0448  0.0507  0.0500        3.2370                 0.3230
+      -0.0252  -0.7832  0.0634  0.1128        7.2282                -1.3801
+s.e.   0.0677   0.0442  0.0522  0.0519        4.3234                 0.9158
 
-sigma^2 = 23.18:  log likelihood = -1143
-AIC=2299.99   AICc=2300.29   BIC=2327.63
+sigma^2 = 23.73:  log likelihood = -1114.51
+AIC=2243.02   AICc=2243.32   BIC=2270.45
 
 Training set error measures:
-                      ME     RMSE      MAE MPE MAPE      MASE         ACF1
-Training set 0.004958037 4.770329 3.580623 NaN  Inf 0.6730631 0.0006299965</code></pre>
+                      ME     RMSE      MAE  MPE MAPE      MASE         ACF1
+Training set 0.003090028 4.825542 3.629745 -Inf  Inf 0.6842496 0.0004223061</code></pre>
 </div>
 </div>
 </section>

@@ -1,6 +1,6 @@
 ---
-title: "CMS Rule Analysis Quarto"
-format: pdf
+title: "FDA Rule Analysis Quarto"
+format: html
 editor: visual
 ---
 
@@ -20,8 +20,8 @@ We hypothesize that these decision created an environment where agencies are les
 library(dplyr)
 
 #read csv
-df <- read.csv("All CMS Rules from 1_14_2025.csv", stringsAsFactors = FALSE)
-#df <- read.csv("All FDA Rules 1_14_2025 to 1_4_1994.csv", stringsAsFactors = FALSE)
+#df <- read.csv("All CMS Rules from 1_14_2025.csv", stringsAsFactors = FALSE)
+df <- read.csv("All FDA Rules 1_14_2025 to 1_4_1994.csv", stringsAsFactors = FALSE)
 
 # 2. Convert 'publication_date' to Date format
 df <- df |>
@@ -74,28 +74,58 @@ ggplot(rules_per_year,
 Next, let's analyze the data broken into its constituent months (the first visualization doesn't work yet)
 
 ```{r}
-#| label: Grouping Rules by month and display
+#| label: Grouping Rules by month Data
+#| echo: false
+
+
+# #class(df$year)
+# # Convert the 'year' var into a numeric value (important for years_seq)
+# 
+# df <- df %>%
+#   mutate(year = as.numeric(as.character(year)))
+# 
+# # Define the complete sequence of years from the minimum to the maximum year in the dataset
+# years_seq <- seq(min(df$year), max(df$year), by = 1)
+
+# 1. Summarize data by year and month
+rules_summary <- df %>%
+  group_by(year, month) %>%
+  summarise(count = n(), .groups = 'drop')
+
+# 2. Determine the date range from existing publication_date values
+min_date <- min(df$publication_date, na.rm = TRUE)
+max_date <- max(df$publication_date, na.rm = TRUE)
+
+# 3. Create a continuous sequence of dates at the start of each month within the actual range
+all_months <- tibble(date = seq.Date(from = floor_date(min_date, "month"),
+                                     to   = floor_date(max_date, "month"),
+                                     by   = "month")) %>%
+  mutate(year  = format(date, "%Y"),
+         month = format(date, "%B"))
+
+# 4. Join the full monthly sequence with summarized data and fill missing counts with 0
+rules_per_month_year <- all_months %>%
+  left_join(rules_summary, by = c("year", "month")) %>%
+  mutate(count = replace_na(count, 0)) %>%
+  arrange(date)
+
+# rules_per_month_year <- df |>
+#   group_by(year, month) |>
+#   summarise(count = n(), .groups = 'drop') |>
+#     # Convert 'month' to an ordered factor to ensure correct ordering
+#   mutate(month = factor(month, levels = month.name, ordered = TRUE)) |>
+#   # Use 'complete()' to fill in missing year-month combinations
+#   complete(year = years_seq, month = month.name, fill = list(count = 0)) |>
+#   arrange(year, match(month, month.name))  # Ensure correct month order
+```
+
+```{r}
+#| label: Visualization of Grouping Rules by month and display
 #| echo: false
 
 
 #plot 2 - number of rules published each month within each year
 
-#class(df$year)
-# Convert the 'year' var into a numeric value (important for years_seq)
-df <- df %>%
-  mutate(year = as.numeric(as.character(year)))
-
-# Define the complete sequence of years from the minimum to the maximum year in the dataset
-years_seq <- seq(min(df$year), max(df$year), by = 1)
-
-rules_per_month_year <- df |>
-  group_by(year, month) |>
-  summarise(count = n(), .groups = 'drop') |>
-    # Convert 'month' to an ordered factor to ensure correct ordering
-  mutate(month = factor(month, levels = month.name, ordered = TRUE)) |>
-  # Use 'complete()' to fill in missing year-month combinations
-  complete(year = years_seq, month = month.name, fill = list(count = 0)) |>
-  arrange(year, match(month, month.name))  # Ensure correct month order
 
 ggplot(rules_per_month_year, aes(x = month, y = count, group = 1)) +
   geom_line(color = "darkgreen", size = 1) +
@@ -242,6 +272,44 @@ rd_model <- lm(count ~ treatment + distance + I(distance^2) +
 
 # View the summary of the model
 summary(rd_model)
+```
+
+Now, let's visualize the RD regression, displaying the number of rules published in the 7 months before and after the cutoff date
+
+```{r}
+#| label: RD Visualization
+#| echo: false
+
+# Define cutoff date
+cutoff_date <- as.Date("2024-06-29")
+
+# Filter data to include 7 months before and after the cutoff
+plot_data <- rules_per_month_year %>%
+  filter(publication_date >= cutoff_date %m-% months(7) &
+         publication_date <= cutoff_date %m+% months(6))
+
+# Add a column to indicate the side of the cutoff for coloring (optional)
+plot_data <- plot_data %>%
+  mutate(side = ifelse(publication_date < cutoff_date, "Pre", "Post"))
+
+ggplot(plot_data, aes(x = publication_date, y = count)) +
+  geom_point(aes(color = side), size = 2) + 
+  # Add vertical line to mark the discontinuity
+  geom_vline(xintercept = as.numeric(cutoff_date), linetype = "dashed", color = "red", size = 1) +
+  # Add separate linear regression lines for pre- and post-cutoff periods
+  geom_smooth(data = filter(plot_data, publication_date < cutoff_date), 
+              method = "lm", se = FALSE, color = "blue", size = 1) +
+  geom_smooth(data = filter(plot_data, publication_date >= cutoff_date), 
+              method = "lm", se = FALSE, color = "darkgreen", size = 1) +
+  labs(
+    title = "Monthly Rule Count Around June 29, 2024",
+    subtitle = "Displaying 7 months before and after the cutoff",
+    x = "Publication Date",
+    y = "Number of Rules",
+    color = "Period"
+  ) +
+  scale_color_manual(values = c("Pre" = "orange", "Post" = "purple")) +
+  theme_minimal()
 ```
 
 Now we'll try an ITS model.
