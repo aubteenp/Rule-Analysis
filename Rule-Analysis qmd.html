@@ -130,33 +130,30 @@ lm(formula = count ~ treatment + distance + I(distance^2) + month +
     transition, data = rules_per_month_year)
 
 Residuals:
-     Min       1Q   Median       3Q      Max 
--15.9969  -3.4676  -0.7539   2.8550  21.0793 
+ALL 15 residuals are 0: no residual degrees of freedom!
 
-Coefficients:
-                Estimate Std. Error t value Pr(&gt;|t|)    
-(Intercept)    2.442e+00  9.451e-01   2.584  0.01016 *  
-treatment      3.441e+00  2.428e+00   1.417  0.15732    
-distance      -6.039e-02  1.139e-02  -5.303 2.01e-07 ***
-I(distance^2) -9.115e-05  2.991e-05  -3.047  0.00248 ** 
-month.L        1.017e+00  1.025e+00   0.992  0.32191    
-month.Q       -3.346e-01  1.022e+00  -0.328  0.74346    
-month.C        2.708e+00  1.025e+00   2.643  0.00859 ** 
-month^4       -1.013e-02  1.023e+00  -0.010  0.99210    
-month^5        1.645e+00  1.024e+00   1.606  0.10905    
-month^6        1.175e+00  1.025e+00   1.147  0.25231    
-month^7       -2.539e+00  1.025e+00  -2.477  0.01372 *  
-month^8        1.699e+00  1.025e+00   1.658  0.09827 .  
-month^9       -1.833e+00  1.025e+00  -1.788  0.07466 .  
-month^10       9.035e-01  1.025e+00   0.881  0.37868    
-month^11      -3.537e-01  1.025e+00  -0.345  0.73034    
-transition     4.935e-01  9.685e-01   0.510  0.61070    
----
-Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+Coefficients: (1 not defined because of singularities)
+              Estimate Std. Error t value Pr(&gt;|t|)
+(Intercept)     53.108        NaN     NaN      NaN
+treatment        8.726        NaN     NaN      NaN
+distance         9.062        NaN     NaN      NaN
+I(distance^2)    5.958        NaN     NaN      NaN
+month.L          6.735        NaN     NaN      NaN
+month.Q       -202.165        NaN     NaN      NaN
+month.C         78.725        NaN     NaN      NaN
+month^4         68.110        NaN     NaN      NaN
+month^5         17.077        NaN     NaN      NaN
+month^6         89.219        NaN     NaN      NaN
+month^7         21.415        NaN     NaN      NaN
+month^8         -8.878        NaN     NaN      NaN
+month^9         28.337        NaN     NaN      NaN
+month^10        30.352        NaN     NaN      NaN
+month^11            NA         NA      NA       NA
+transition     145.000        NaN     NaN      NaN
 
-Residual standard error: 5.707 on 357 degrees of freedom
-Multiple R-squared:  0.2594,    Adjusted R-squared:  0.2283 
-F-statistic: 8.338 on 15 and 357 DF,  p-value: 2.379e-16</code></pre>
+Residual standard error: NaN on 0 degrees of freedom
+Multiple R-squared:      1, Adjusted R-squared:    NaN 
+F-statistic:   NaN on 14 and 0 DF,  p-value: NA</code></pre>
 </div>
 </div>
 <p>Now, let’s visualize the RD regression, displaying the number of rules published in the 7 months before and after the cutoff date</p>
@@ -181,54 +178,27 @@ F-statistic: 8.338 on 15 and 357 DF,  p-value: 2.379e-16</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>     Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec
-1994   6   0   0   0   0   0   0   0   0   0   0   0
-1995   7   6   8   8   7  13  10  10  10   9   9   9
-1996  12   9  18  11  10  10  11  14   9  12   9  12
-1997  10   6  16  17  23  22  26  16  20  14  21  21
-1998   6  24  29  17  26  25  28  34  26  21  29  21
-1999  18   9  27  20  22  11   8  25  22  13  14  17
-2000  10   9  23  19  12  16  27  20  15  18  18  10
-2001  13   5  23  15  13   8   8   5  14   3   9  11
-2002   4  16   7   9  15  10  16   9   2   8   8  32
-2003  10  11  15  10  10  23  18  16  19  16   5  11
-2004   8  15  22  13  19  12  11  26   8  14  11  20
-2005   7  12  13   9   4  11  11  10   6   4  15  14
-2006   8   8  16   5   8  12  18   8  16   3  12  13
-2007  13   9  18  14  11   8  10  14   6  10  10  11
-2008   8  12  14  12   8  11   4  10   7  10   8   6
-2009   6   6  13   6   9   8   9  12   2   8  11   9
-2010   7   4  14  14   4   5   3   1  15   4  10   6
-2011   4   4  20   8   6   9  13   7   8   3   3  10
-2012  10  10   9   5  10   6   4   8   5   3   3   3
-2013   4   2  11   5   5   5   8   6   5   2  10  10
-2014   7  12   9  12   8  10  12   3   6   2   1   9
-2015   1   5   9   7   5  12   6   9  11   7  13   7
-2016   9   7   7   9  10  13  11  14  11   9  16  16
-2017   6   7   9   1   5   1  11   4   3  17  12  14
-2018  11   4  12   2  10  10   0   2   8  14   5   8
-2019   0   4   8  12   2   3   3   3   0   6   0   6
-2020   7   3   6   5   2   2   7   6   2   2   1   2
-2021   3   2   3   5   0   1   3   1   4   7   6  23
-2022   6  11  13   3   8   4   1   6   6   4   5  11
-2023  20   2  11   1   4   0   1   3   3   2   4   5
-2024   2   6   4   2   7   4   3   7  21   5   1   4
-2025   1                                            </code></pre>
+2023                                         229 261
+2024 246 211 249 300 305 245 257 292 263 275 215 390
+2025 228                                            </code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Series: ts_rules 
-Regression with ARIMA(1,1,1)(0,0,2)[12] errors 
+Regression with ARIMA(0,0,0) errors 
 
 Coefficients:
-          ar1      ma1    sma1    sma2  Intervention  TimeAfterIntervention
-      -0.0252  -0.7832  0.0634  0.1128        7.2282                -1.3801
-s.e.   0.0677   0.0442  0.0522  0.0519        4.3234                 0.9158
+      intercept  Intervention  TimeAfterIntervention
+       255.7500        9.8214                 2.1786
+s.e.    15.0112       38.8969                 8.0238
 
-sigma^2 = 23.73:  log likelihood = -1114.51
-AIC=2243.02   AICc=2243.32   BIC=2270.45
+sigma^2 = 2253:  log likelihood = -77.51
+AIC=163.02   AICc=167.02   BIC=165.86
 
 Training set error measures:
-                      ME     RMSE      MAE  MPE MAPE      MASE         ACF1
-Training set 0.003090028 4.825542 3.629745 -Inf  Inf 0.6842496 0.0004223061</code></pre>
+                       ME     RMSE      MAE       MPE     MAPE      MASE
+Training set 1.794357e-11 42.45785 31.05238 -2.271478 11.50889 0.5786158
+                  ACF1
+Training set -0.414264</code></pre>
 </div>
 </div>
 </section>

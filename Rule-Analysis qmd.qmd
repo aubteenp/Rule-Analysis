@@ -1,12 +1,12 @@
 ---
 title: "FDA Rule Analysis Quarto"
-format: html
+format: pdf
 editor: visual
 ---
 
 ## Intro
 
-In the summer of 2024, the Supreme Court issued two landmark rulings -- *Ohio v. EPA* on June 27, 2024, and *Loper Bright Enterprises v. Raimondo* on June 28, 2024 -- that transformed the regulatory landscape for federal agencies. In *Ohio v. EPA*, the Court held that an agency\'s failure to adequately respond to significant public comments during the notice-and-comment process renders its rules arbitrary and capricious. The following day, in *Loper Bright v. Raimondo*, the Courtoverruled Chevron deference, directing lower courts to interpret statutory ambiguities independently rather than deferring to agency interpretations. In doing so, the Court substantially reduced agency latitude in interpreting legislative \"gray areas\".
+In the summer of 2024, the Supreme Court issued two landmark rulings -- *Ohio v. EPA* on June 27, 2024, and *Loper Bright Enterprises v. Raimondo* on June 28, 2024 -- that transformed the regulatory landscape for federal agencies. In *Ohio v. EPA*, the Court held that an agency's failure to adequately respond to significant public comments during the notice-and-comment process renders its rules arbitrary and capricious. The following day, in *Loper Bright v. Raimondo*, the Courtoverruled Chevron deference, directing lower courts to interpret statutory ambiguities independently rather than deferring to agency interpretations. In doing so, the Court substantially reduced agency latitude in interpreting legislative "gray areas".
 
 We hypothesize that these decision created an environment where agencies are less likely to publish formal rules. The increased logistical burden of addressing public comments post-*Ohio v. EPA* and the heightened risk of litigation over statutory interpretations post-*Loper Bright* likely discourage rulemaking. To investigate this hypothesis, we employ quantitative methods---specifically, regression-discontinuity and interrupted time series analyses---using the period following the release of Loper Bright Enterprises v. Raimondo (starting June 29, 2024) as a cutoff. This study aims to empirically assess how these Supreme Court rulings have impacted agency rulemaking behavior.
 
@@ -22,6 +22,8 @@ library(dplyr)
 #read csv
 #df <- read.csv("All CMS Rules from 1_14_2025.csv", stringsAsFactors = FALSE)
 df <- read.csv("All FDA Rules 1_14_2025 to 1_4_1994.csv", stringsAsFactors = FALSE)
+#df <- read.csv("DHHS Pull - 12_1_2023 to 1_19_2025.csv", stringsAsFactors = FALSE)
+#df <- read.csv("ALL RULES 11_13_2023_to_01_19_2025.csv", stringsAsFactors = FALSE)
 
 # 2. Convert 'publication_date' to Date format
 df <- df |>
