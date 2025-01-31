@@ -1,6 +1,6 @@
 ---
 title: "FDA Rule Analysis Quarto"
-format: pdf
+format: html
 editor: visual
 ---
 
