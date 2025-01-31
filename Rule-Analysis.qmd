@@ -289,3 +289,7 @@ its_model <- auto.arima(ts_rules, xreg = external_regressors, seasonal = TRUE)
 summary(its_model)
 
 ```
+
+```{r}
+
+```

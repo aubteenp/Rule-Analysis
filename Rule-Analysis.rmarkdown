@@ -17,30 +17,8 @@ Quarto enables you to weave together content and executable code into a finished
 library(dplyr)
 
 #read csv
-#df <- read.csv("CMS Rules.csv", stringsAsFactors = FALSE)
+df <- read.csv("All CMS Rules from 1_14_2025.csv", stringsAsFactors = FALSE)
 #df <- read.csv("FDA Rules.csv", stringsAsFactors = FALSE)
-
-#Combining multiple FDA rule viles
-
-# Define the list of file names
-files <- c(
-  "1st FDA pull - 12_18_2024 to 1_4_2016.csv",
-  "2nd FDA pull - 11_25_2005 to 12_28_2015.csv",
-  "3rd FDA pull - 11_25_2005 to 7_19_1999.csv",
-  "4th FDA pull - 7_13_1999 to 1_4_1994.csv"
-)
-
-# Initialize an empty list to store data frames
-list_of_dfs <- list()
-
-# Loop through each file and read it into a data frame
-for (i in seq_along(files)) {
-  tempdf <- read.csv(files[i], stringsAsFactors = FALSE)
-  list_of_dfs[[i]] <- tempdf
-}
-
-# Combine all data frames into one using rbind
-df <- do.call(rbind, list_of_dfs)
 
 # 2. Convert 'publication_date' to Date format
 df <- df |>
@@ -59,6 +37,7 @@ Now, create plots from df data frame
 
 
 ```{r}
+#| code-title: "Grouping Rules by Year"
 #| echo: false
 
 library(ggplot2)
@@ -67,6 +46,7 @@ library(dplyr)
 library(tidyr)
 
 
+#generates table with number of rules per year
 rules_per_year <- df |>
   group_by(year) |>
   summarize(count = n()) |>
@@ -93,6 +73,9 @@ Now, let's analyze the data broken into its constituent months
 
 
 ```{r}
+
+#| code-title: "Grouping Rules by month"
+#| echo: false
 
 
 #plot 2 - number of rules published each month within each year
@@ -142,7 +125,10 @@ Data Analysis
 
 
 ```{r}
+#| code-title: "Cleaning Data for Model"
+#| echo: false
 
+#creates data frame with number of rules published in each month of each year
 monthly_counts <- df %>%
   group_by(year, month) %>%
   summarise(count = n()) %>%
@@ -155,7 +141,7 @@ df <- df |>
   )
 
 # Define presidential transition years, and create transition indicator
-transition_years <- c(2008, 2016, 2020, 2024)
+transition_years <- c(2000, 2008, 2016, 2020, 2024)
 
 df <- df %>%
   mutate(
@@ -165,9 +151,17 @@ df <- df %>%
 monthly_counts <- monthly_counts %>%
   mutate(
     transition = ifelse(year %in% transition_years, 1, 0)
-  )
+  ) |>
+    arrange(year, month) %>% 
+  # Create a marker when transition status changes compared to the previous row
+  # Without this marker, red lines would connect months in adjacent transition years
+  mutate(change = transition != lag(transition, default = first(transition))) %>%
+  # Assign a unique group ID for each consecutive segment of identical transition status
+  mutate(group = cumsum(change))
 
-ggplot(monthly_counts, aes(x = as.Date(paste(year, month, "01", sep = "-"), format = "%Y-%B-%d"), y = count, color = factor(transition))) +
+
+ggplot(monthly_counts, aes(x = as.Date(paste(year, month, "01", sep = "-"), format = "%Y-%B-%d"), y = count, color = factor(transition),
+                           group = group)) +
   geom_line() +
   labs(title = "Monthly Number of Rules Published with Transition Years Highlighted",
        x = "Date",
@@ -205,7 +199,7 @@ Where:
 
 -   ($\delta_m$): Coefficients for each monthly dummy variable, capturing the effect of being in month ($m$) relative to the reference month.
 
--   ($T_i$): Presidential Transition Indicator for month ($T_i$): \[ $T_i$ =1 for 2008, 2016, 2020, or 2024 and 0 otherwise.
+-   ($T_i$): Presidential Transition Indicator for month ($T_i$): $T_i$ =1 for 2008, 2016, 2020, or 2024 and 0 otherwise.
 
 -   ($\theta$): Coefficient capturing the effect associated with presidential transition years.
 
@@ -248,9 +242,6 @@ rd_model <- lm(count ~ treatment + distance + I(distance^2) +
 
 # View the summary of the model
 summary(rd_model)
-
-
-
 ```
 
 
@@ -311,6 +302,7 @@ summary(its_model)
 
 ```
 
+```{r}
 
-The `echo: false` option disables the printing of code (only output is displayed).
+```
 

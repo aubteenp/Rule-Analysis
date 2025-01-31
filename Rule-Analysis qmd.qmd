@@ -372,3 +372,244 @@ its_model <- auto.arima(ts_rules, xreg = external_regressors, seasonal = TRUE)
 summary(its_model)
 
 ```
+
+```{r}
+#| label: Read in Guidance Data
+#| echo: false
+
+library(dplyr)
+library(lubridate)
+library(tidyr)
+library(ggplot2)
+
+guidance_df <- read.csv("All FDA Guidance Documents.csv", skip = 1, stringsAsFactors = FALSE)
+
+# Convert 'Issue Date' to Date format and extract year and month
+guidance_df <- guidance_df %>%
+  mutate(
+    publication_date = as.Date(`Issue.Date`, format = "%m/%d/%Y"),
+    year = format(publication_date, "%Y"),
+    month = format(publication_date, "%B")
+  )
+
+# Filter to include only Final Guidance Documents
+guidance_final_df <- guidance_df %>%
+  filter(`Guidance.Status` == "Final")
+
+# Verify the filtering
+#table(guidance_final_df$`Guidance Status`)
+
+```
+
+```{r}
+#| label: Aggregating FDA Rules and Final Guidance Counts by Month
+#| echo: false
+
+# Aggregate counts of Rules per month (existing data)
+rules_monthly_counts <- rules_per_month_year %>%
+  select(year, month, count) %>%
+  rename(rules = count)
+
+# Aggregate counts of Final Guidance Documents per month
+guidance_monthly_counts <- guidance_final_df %>%
+  group_by(year, month) %>%
+  summarise(guidance = n(), .groups = 'drop')
+
+# Combine Rules and Guidance counts
+combined_counts <- full_join(rules_monthly_counts, guidance_monthly_counts, by = c("year", "month"))
+
+# Replace NA with 0 for months with no Rules or Guidance
+combined_counts <- combined_counts %>%
+  replace_na(list(rules = 0, guidance = 0))
+
+# Ensure the 'year' column is numeric
+combined_counts <- combined_counts %>%
+  mutate(year = as.numeric(year))
+
+# Filter for years 1996 and later
+combined_counts <- combined_counts %>%
+  filter(year >= 1996)
+
+# View the combined counts
+head(combined_counts)
+
+
+```
+
+```{r}
+#| label: sort combined_counts in descending order by date
+#| echo: false
+
+# Create a 'date' column representing the first day of each month
+combined_counts <- combined_counts %>%
+  mutate(
+    date = make_date(year = as.numeric(year), month = match(month, month.name), day = 1)
+  )
+
+# Sort the dataframe by 'date' in descending order
+combined_counts_sorted_desc <- combined_counts %>%
+  arrange(desc(date))
+
+# Display the first few rows to verify
+head(combined_counts_sorted_desc)
+
+
+```
+
+```{r}
+#| label: calculate rule-to-guidance proportion
+#| echo: false
+
+# Calculate the proportion of rules to total documents
+combined_counts <- combined_counts %>%
+  mutate(
+    total_documents = rules + guidance,
+    proportion_rules = ifelse(total_documents > 0, rules / total_documents, NA)
+  )
+
+```
+
+```{r}
+#| label: plot proportion over time
+#| echo: false
+
+library(ggplot2)
+
+ggplot(combined_counts, aes(x = date, y = proportion_rules)) +
+  geom_line(color = "blue", size = 1) +
+  geom_point(color = "darkblue", size = 2) +
+  geom_vline(xintercept = as.numeric(as.Date("2024-06-29")), 
+             linetype = "dashed", color = "red", size = 1) +
+  annotate("text", x = as.Date("2024-06-29"), 
+           y = max(combined_counts$proportion_rules, na.rm = TRUE), 
+           label = "Cutoff Date", vjust = -1, hjust = 1.1, color = "red") +
+  labs(
+    title = "Proportion of FDA Rules to Total Documents Over Time",
+    subtitle = "With Cutoff Date Highlighted",
+    x = "Publication Date",
+    y = "Proportion of Rules"
+  ) +
+  theme_minimal()
+
+```
+
+```{r}
+#| label: plot proportion per year over time
+#| echo: false
+library(scales)  
+combined_counts_yearly <- combined_counts %>%
+  mutate(year = as.numeric(year)) %>%  # Ensure 'year' is numeric
+  group_by(year) %>%
+  summarise(
+    total_rules = sum(rules, na.rm = TRUE),
+    total_guidance = sum(guidance, na.rm = TRUE)
+  ) %>%
+  ungroup() %>%
+  mutate(
+    proportion_rules = ifelse(
+      (total_rules + total_guidance) > 0,
+      total_rules / (total_rules + total_guidance),
+      NA
+    )
+  )
+
+
+# Create the line plot
+ggplot(combined_counts_yearly, aes(x = year, y = proportion_rules)) +
+  geom_line(color = "steelblue", size = 1) +
+  geom_point(color = "darkblue", size = 2) +
+  scale_y_continuous(labels = percent_format(accuracy = 1)) +
+  labs(
+    title = "Annual Proportion of FDA Rules to Final Guidance Documents",
+    subtitle = "Trend from 1996 to 2025",
+    x = "Year",
+    y = "Proportion of FDA Rules",
+    caption = "Source: FDA Rules and Guidance Documents Data"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    plot.subtitle = element_text(size = 12),
+    axis.text = element_text(size = 10),
+    axis.title = element_text(size = 12)
+  )
+
+```
+
+```{r}
+#| label: Prep Data for RD Model
+#| echo: false
+
+# Define cutoff date (June 29, 2024)
+cutoff_date_rd <- as.Date("2024-06-29")
+
+# Prepare the data for RD analysis
+rd_data_proportion <- combined_counts %>%
+  mutate(
+    # Ensure 'date' is correctly formatted
+    publication_date = date,
+    
+    # Calculate distance in months from cutoff
+    distance = interval(ymd("2001-01-01"), publication_date) / months(1) - 
+               interval(ymd("2001-01-01"), cutoff_date_rd) / months(1),
+    
+    # Treatment indicator: 1 if post-cutoff, 0 otherwise
+    treatment = ifelse(publication_date > cutoff_date_rd, 1, 0)
+  ) %>%
+  # Create presidential transition indicator
+  mutate(
+    transition = ifelse(year(publication_date) %in% c(2000, 2008, 2016, 2020, 2024), 1, 0)
+  ) %>%
+  # Convert 'month' to an ordered factor
+  mutate(
+    month = factor(month, levels = month.name, ordered = TRUE)
+  )
+```
+
+```{r}
+#| label: Fitting  RD Model for prop of FDA Rules to guidance
+#| echo: false
+
+
+
+# Fit the RD model using linear regression
+rd_model_proportion <- lm(proportion_rules ~ treatment + distance + I(distance^2) + 
+                            month + transition, data = rd_data_proportion)
+
+# View the summary of the RD model
+summary(rd_model_proportion)
+
+```
+
+```{r}
+#| label: ITS Model for Prop
+#| echo: false
+
+library(forecast)     # For ARIMA modeling
+
+
+# Define the intervention date
+intervention_date <- as.Date("2024-06-29")
+
+# Create time variables
+combined_counts <- combined_counts %>%
+  arrange(date) %>%  # Ensure data is sorted by date
+  mutate(
+    # Time since start (in months)
+    time = as.numeric(difftime(date, min(date), units = "weeks")) / 4.345,  # Approximate months
+    
+    # Binary indicator for intervention (1 = post-intervention, 0 = pre-intervention)
+    intervention = ifelse(date >= intervention_date, 1, 0),
+    
+    # Time after intervention (0 before intervention)
+    time_after = ifelse(date >= intervention_date, time - min(time[intervention == 1]), 0)
+  )
+
+# Fit the segmented regression model
+its_model <- lm(proportion_rules ~ time + intervention + time_after, data = combined_counts)
+
+# View the summary of the model
+summary(its_model)
+
+
+```
