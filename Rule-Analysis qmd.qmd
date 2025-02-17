@@ -1,14 +1,16 @@
 ---
 title: "FDA Rule Analysis Quarto"
-format: html
+format: pdf
 editor: visual
 ---
 
 ## Intro
 
-In the summer of 2024, the Supreme Court issued two landmark rulings -- *Ohio v. EPA* on June 27, 2024, and *Loper Bright Enterprises v. Raimondo* on June 28, 2024 -- that transformed the regulatory landscape for federal agencies. In *Ohio v. EPA*, the Court held that an agency's failure to adequately respond to significant public comments during the notice-and-comment process renders its rules arbitrary and capricious. The following day, in *Loper Bright v. Raimondo*, the Courtoverruled Chevron deference, directing lower courts to interpret statutory ambiguities independently rather than deferring to agency interpretations. In doing so, the Court substantially reduced agency latitude in interpreting legislative "gray areas".
+In the summer of 2024, the Supreme Court issued two landmark rulings -- *Ohio v. EPA* on June 27, 2024, and *Loper Bright Enterprises v. Raimondo* on June 28, 2024 -- that transformed the regulatory landscape for federal agencies. In *Ohio v. EPA*, the Court held that an agency's failure to adequately respond to significant public comments during the notice-and-comment process renders its rules arbitrary and capricious. The following day, in *Loper Bright v. Raimondo*, the Court overruled Chevron deference, directing lower courts to interpret statutory ambiguities independently rather than deferring to agency interpretations. In doing so, the Court substantially reduced agency latitude in interpreting legislative "gray areas".
 
-We hypothesize that these decision created an environment where agencies are less likely to publish formal rules. The increased logistical burden of addressing public comments post-*Ohio v. EPA* and the heightened risk of litigation over statutory interpretations post-*Loper Bright* likely discourage rulemaking. To investigate this hypothesis, we employ quantitative methods---specifically, regression-discontinuity and interrupted time series analyses---using the period following the release of Loper Bright Enterprises v. Raimondo (starting June 29, 2024) as a cutoff. This study aims to empirically assess how these Supreme Court rulings have impacted agency rulemaking behavior.
+We hypothesize that these decision created an environment where agencies are less likely to publish formal rules due to the increased logistical burden of addressing public comments post-*Ohio v. EPA* and the heightened risk of litigation over statutory interpretations post-*Loper Bright* likely discourage rulemaking. In addition, we propose a broader hypothesis: the overall proportion of formal rules has been decreasing since 2000. This decline is likely driven by a combination of factors. First, evolving expectations for transparency and adaptability have encouraged agencies to favor more flexible, informal governance mechanisms. Second, the cumulative impact of judicial constraints---exemplified by recent rulings---further disincentivizes the proliferation of formal rulemaking.
+
+To investigate these hypotheses, we employ quantitative methods---specifically, regression-discontinuity and interrupted time series analyses---using the period following the release of Loper Bright Enterprises v. Raimondo (starting June 29, 2024) as a cutoff, complemented by a longitudinal analysis of rulemaking trends dating back to 2000. This study aims to empirically assess how these Supreme Court rulings, in tandem with broader administrative shifts, have impacted agency rulemaking behavior.
 
 ## Running Code
 
@@ -566,18 +568,137 @@ rd_data_proportion <- combined_counts %>%
   )
 ```
 
+RD model with only 6 mos before and after cutoff
+
+```{r}
+#| label: RD Model w/ 6 mos bands
+#| echo: false
+
+# Define the 6-month window
+start_date <- cutoff_date_rd %m-% months(6)
+end_date <- cutoff_date_rd %m+% months(6)
+
+# Filter the data to the 6-month window
+rd_data_filtered <- rd_data_proportion %>%
+  filter(publication_date >= start_date & publication_date <= end_date) %>%
+  arrange(publication_date) %>%
+  mutate(
+    # Redefine 'distance' as months since start of window
+    distance = interval(start_date, publication_date) / months(1),
+    
+    # Treatment indicator: 1 if post-cutoff, 0 otherwise
+    treatment = ifelse(publication_date > cutoff_date_rd, 1, 0),
+    
+    # Time after intervention: months since cutoff for post-intervention
+    time_after = ifelse(publication_date > cutoff_date_rd, 
+                       distance - (interval(start_date, cutoff_date_rd) / months(1)), 
+                       0)
+  )
+
+# Fit the RD model on filtered data
+rd_model_filtered <- lm(proportion_rules ~ treatment + distance + I(distance^2), 
+                        data = rd_data_filtered)
+
+# View the summary of the filtered RD model
+summary(rd_model_filtered)
+
+
+```
+
+RD Model with all data (does not include Jan 2025).
+
 ```{r}
 #| label: Fitting  RD Model for prop of FDA Rules to guidance
 #| echo: false
 
+# Filter out data from January 2025 and later
+rd_data_proportion_filtered <- rd_data_proportion %>%
+  filter(publication_date < as.Date("2025-01-01"))
 
 
 # Fit the RD model using linear regression
 rd_model_proportion <- lm(proportion_rules ~ treatment + distance + I(distance^2) + 
-                            month + transition, data = rd_data_proportion)
+                            month + transition, data = rd_data_proportion_filtered)
 
 # View the summary of the RD model
 summary(rd_model_proportion)
+
+```
+
+```{r}
+#| label: Visualize RD Analysis
+#| echo: false
+
+# Calculate the cutoff distance in numeric months using an interval
+cutoff_distance <- as.numeric(interval(start_date, cutoff_date_rd) / months(1))
+
+
+# Plot the RD analysis within the 6-month window
+ggplot(rd_data_filtered, aes(x = distance, y = proportion_rules)) +
+  geom_point(color = "darkblue") +
+  geom_smooth(method = "lm", formula = y ~ x + I(x^2), se = TRUE, color = "blue", fill = "lightblue") +
+  geom_vline(xintercept = cutoff_distance, 
+             linetype = "dotted", color = "red", size = 1) +
+  annotate("text", 
+           x = cutoff_distance + 0.2, 
+           y = max(rd_data_filtered$proportion_rules, na.rm = TRUE), 
+           label = "Cutoff Date", 
+           color = "red", 
+           angle = 90, 
+           vjust = -0.5, 
+           size = 3) +
+  labs(
+    title = "Regression Discontinuity Analysis Within 6-Month Window",
+    subtitle = "Proportion of FDA Rules to Final Guidance Documents",
+    x = "Months Since Start of Window",
+    y = "Proportion of FDA Rules",
+    caption = "Source: FDA Rules and Guidance Documents Data"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    plot.subtitle = element_text(size = 12),
+    axis.text = element_text(size = 10),
+    axis.title = element_text(size = 12)
+  )
+
+```
+
+```{r}
+#| label: Second Visualize RD Analysis 
+#| echo: false
+
+# Define cutoff date
+cutoff_date <- as.Date("2024-06-29")
+
+# Filter data to include 7 months before and 6 months after the cutoff
+plot_data <- combined_counts %>%
+  filter(date >= cutoff_date %m-% months(7) &
+         date <= cutoff_date %m+% months(6))
+
+# Add a column to indicate the side of the cutoff for coloring
+plot_data <- plot_data %>%
+  mutate(side = ifelse(date < cutoff_date, "Pre", "Post"))
+
+# Plot the data
+ggplot(plot_data, aes(x = date, y = proportion_rules)) +
+  geom_point(aes(color = side), size = 2) + 
+  # Add vertical line to mark the discontinuity at the cutoff
+  geom_vline(xintercept = cutoff_date, linetype = "dashed", color = "red", size = 1) +
+  # Add separate linear regression lines for pre- and post-cutoff periods
+  geom_smooth(data = filter(plot_data, date < cutoff_date), 
+              method = "lm", se = FALSE, color = "blue", size = 1) +
+  geom_smooth(data = filter(plot_data, date >= cutoff_date), 
+              method = "lm", se = FALSE, color = "darkgreen", size = 1) +
+  labs(
+    title = "Monthly Proportion of FDA Rules Around June 29, 2024",
+    subtitle = "Displaying 7 months before and 6 months after the cutoff",
+    x = "Publication Date",
+    y = "Proportion of FDA Rules",
+    color = "Period"
+  ) +
+  scale_color_manual(values = c("Pre" = "orange", "Post" = "purple")) +
+  theme_minimal()
 
 ```
 

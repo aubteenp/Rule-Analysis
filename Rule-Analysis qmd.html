@@ -64,8 +64,9 @@ ul.task-list li input[type="checkbox"] {
 
 <section id="intro" class="level2">
 <h2 class="anchored" data-anchor-id="intro">Intro</h2>
-<p>In the summer of 2024, the Supreme Court issued two landmark rulings – <em>Ohio v. EPA</em> on June 27, 2024, and <em>Loper Bright Enterprises v. Raimondo</em> on June 28, 2024 – that transformed the regulatory landscape for federal agencies. In <em>Ohio v. EPA</em>, the Court held that an agency’s failure to adequately respond to significant public comments during the notice-and-comment process renders its rules arbitrary and capricious. The following day, in <em>Loper Bright v. Raimondo</em>, the Courtoverruled Chevron deference, directing lower courts to interpret statutory ambiguities independently rather than deferring to agency interpretations. In doing so, the Court substantially reduced agency latitude in interpreting legislative “gray areas”.</p>
-<p>We hypothesize that these decision created an environment where agencies are less likely to publish formal rules. The increased logistical burden of addressing public comments post-<em>Ohio v. EPA</em> and the heightened risk of litigation over statutory interpretations post-<em>Loper Bright</em> likely discourage rulemaking. To investigate this hypothesis, we employ quantitative methods—specifically, regression-discontinuity and interrupted time series analyses—using the period following the release of Loper Bright Enterprises v. Raimondo (starting June 29, 2024) as a cutoff. This study aims to empirically assess how these Supreme Court rulings have impacted agency rulemaking behavior.</p>
+<p>In the summer of 2024, the Supreme Court issued two landmark rulings – <em>Ohio v. EPA</em> on June 27, 2024, and <em>Loper Bright Enterprises v. Raimondo</em> on June 28, 2024 – that transformed the regulatory landscape for federal agencies. In <em>Ohio v. EPA</em>, the Court held that an agency’s failure to adequately respond to significant public comments during the notice-and-comment process renders its rules arbitrary and capricious. The following day, in <em>Loper Bright v. Raimondo</em>, the Court overruled Chevron deference, directing lower courts to interpret statutory ambiguities independently rather than deferring to agency interpretations. In doing so, the Court substantially reduced agency latitude in interpreting legislative “gray areas”.</p>
+<p>We hypothesize that these decision created an environment where agencies are less likely to publish formal rules due to the increased logistical burden of addressing public comments post-<em>Ohio v. EPA</em> and the heightened risk of litigation over statutory interpretations post-<em>Loper Bright</em> likely discourage rulemaking. In addition, we propose a broader hypothesis: the overall proportion of formal rules has been decreasing since 2000. This decline is likely driven by a combination of factors. First, evolving expectations for transparency and adaptability have encouraged agencies to favor more flexible, informal governance mechanisms. Second, the cumulative impact of judicial constraints—exemplified by recent rulings—further disincentivizes the proliferation of formal rulemaking.</p>
+<p>To investigate these hypotheses, we employ quantitative methods—specifically, regression-discontinuity and interrupted time series analyses—using the period following the release of Loper Bright Enterprises v. Raimondo (starting June 29, 2024) as a cutoff, complemented by a longitudinal analysis of rulemaking trends dating back to 2000. This study aims to empirically assess how these Supreme Court rulings, in tandem with broader administrative shifts, have impacted agency rulemaking behavior.</p>
 </section>
 <section id="running-code" class="level2">
 <h2 class="anchored" data-anchor-id="running-code">Running Code</h2>
@@ -278,6 +279,31 @@ Training set 0.003090028 4.825542 3.629745 -Inf  Inf 0.6842496 0.0004223061</cod
 <div class="cell-output cell-output-stdout">
 <pre><code>
 Call:
+lm(formula = proportion_rules ~ treatment + distance + I(distance^2), 
+    data = rd_data_filtered)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.19046 -0.12494 -0.02081  0.11941  0.29950 
+
+Coefficients:
+               Estimate Std. Error t value Pr(&gt;|t|)  
+(Intercept)    0.305717   0.149981   2.038   0.0759 .
+treatment     -0.159702   0.219308  -0.728   0.4872  
+distance       0.060898   0.065858   0.925   0.3822  
+I(distance^2) -0.004540   0.005166  -0.879   0.4051  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 0.1878 on 8 degrees of freedom
+Multiple R-squared:  0.1752,    Adjusted R-squared:  -0.1341 
+F-statistic: 0.5664 on 3 and 8 DF,  p-value: 0.6524</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
 lm(formula = proportion_rules ~ treatment + distance + I(distance^2) + 
     month + transition, data = rd_data_proportion)
 
@@ -310,6 +336,11 @@ Residual standard error: 0.1878 on 332 degrees of freedom
   (1 observation deleted due to missingness)
 Multiple R-squared:  0.4545,    Adjusted R-squared:  0.4298 
 F-statistic: 18.44 on 15 and 332 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="Rule-Analysis-qmd_files/figure-html/Visualize%20RD%20Analysis-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 <div class="cell">
