@@ -1,0 +1,388 @@
+---
+title: "Rule Analysis Memo"
+format: html
+editor: visual
+---
+
+## Intro
+
+In the summer of 2024, the Supreme Court issued two landmark rulings -- *Ohio v. EPA* on June 27, 2024, and *Loper Bright Enterprises v. Raimondo* on June 28, 2024 -- that transformed the regulatory landscape for federal agencies. In *Ohio v. EPA*, the Court held that an agency's failure to adequately respond to significant public comments during the notice-and-comment process renders its rules arbitrary and capricious. The following day, in *Loper Bright v. Raimondo*, the Court overruled Chevron deference, directing lower courts to interpret statutory ambiguities independently rather than deferring to agency interpretations. In doing so, the Court substantially reduced agency latitude in interpreting legislative "gray areas".
+
+We hypothesize that these decision created an environment where agencies are less likely to publish formal rules due to the increased logistical burden of addressing public comments post-*Ohio v. EPA* and the heightened risk of litigation over statutory interpretations post-*Loper Bright* likely discourage rulemaking. In addition, we propose a broader hypothesis: the overall proportion of formal rules has been decreasing since 2000. This decline is likely driven by a combination of factors. First, evolving expectations for transparency and adaptability have encouraged agencies to favor more flexible, informal governance mechanisms. Second, the cumulative impact of judicial constraints---exemplified by recent rulings---further disincentivizes the proliferation of formal rulemaking.
+
+To investigate these hypotheses, we employ quantitative methods---specifically, regression-discontinuity and interrupted time series analyses---using the period following the release of Loper Bright Enterprises v. Raimondo (starting June 29, 2024) as a cutoff, complemented by a longitudinal analysis of rulemaking trends dating back to 2000. This study aims to empirically assess how these Supreme Court rulings, in tandem with broader administrative shifts, have impacted agency rulemaking behavior.
+
+## Running Code
+
+```{r}
+#| label: Load Libraries
+#| echo: false
+#| warning: false
+
+library(dplyr)
+library(lubridate)
+library(tidyr)
+library(ggplot2)
+library(forecast) #for ITS Model
+library(scales)  #used to plot proportion per year over time
+```
+
+```{r}
+#| label: Read in csv files
+#| echo: false
+#| warning: false
+
+#read csv
+#df <- read.csv("All CMS Rules from 1_14_2025.csv", stringsAsFactors = FALSE)
+df <- read.csv("All FDA Rules 1_14_2025 to 1_4_1994.csv", stringsAsFactors = FALSE)
+#df <- read.csv("DHHS Pull - 12_1_2023 to 1_19_2025.csv", stringsAsFactors = FALSE)
+#df <- read.csv("ALL RULES 11_13_2023_to_01_19_2025.csv", stringsAsFactors = FALSE)
+
+# 2. Convert 'publication_date' to Date format
+df <- df |>
+  mutate(publication_date = as.Date(publication_date, format = "%m/%d/%Y"), 
+         year = format(publication_date, "%Y"),
+         month = format(publication_date, "%B")
+         )
+
+# View the first few rows to verify
+#df
+
+```
+
+```{r}
+#| label: Read in Guidance Data
+#| echo: false
+
+guidance_df <- read.csv("All FDA Guidance Documents.csv", skip = 1, stringsAsFactors = FALSE)
+
+# Convert 'Issue Date' to Date format and extract year and month
+guidance_df <- guidance_df %>%
+  mutate(
+    publication_date = as.Date(`Issue.Date`, format = "%m/%d/%Y"),
+    year = format(publication_date, "%Y"),
+    month = format(publication_date, "%B")
+  )
+
+# Filter to include only Final Guidance Documents
+guidance_final_df <- guidance_df %>%
+  filter(`Guidance.Status` == "Final")
+
+# Verify the filtering
+#table(guidance_final_df$`Guidance Status`)
+```
+
+```{r}
+#| label: Unified Monthly data frame
+#| echo: false
+
+# Create a unified monthly data frame for the period 2000-2024
+
+# Define the start and end dates for the monthly sequence
+start_date <- as.Date("2000-01-01")
+end_date   <- as.Date("2024-12-31")
+
+# Create a tibble with one row per month in the date range
+unified_monthly <- tibble(date = seq.Date(from = start_date, to = end_date, by = "month")) %>%
+  mutate(
+    year = format(date, "%Y"),
+    month = format(date, "%B")
+  )
+
+# Aggregate rules by month from df
+rules_monthly <- df %>%
+  filter(as.numeric(year) >= 2000, as.numeric(year) <= 2024) %>%
+  group_by(year, month) %>%
+  summarize(rules = n(), .groups = 'drop')
+
+# Aggregate final guidance counts by month from guidance_final_df
+guidance_monthly <- guidance_final_df %>%
+  filter(as.numeric(year) >= 2000, as.numeric(year) <= 2024) %>%
+  group_by(year, month) %>%
+  summarize(guidance = n(), .groups = 'drop')
+
+# Combine the monthly aggregates with the full sequence, ensuring missing counts are set to 0
+unified_data <- unified_monthly %>%
+  left_join(rules_monthly, by = c("year", "month")) %>%
+  left_join(guidance_monthly, by = c("year", "month")) %>%
+  mutate(
+    rules = replace_na(rules, 0),
+    guidance = replace_na(guidance, 0),
+    total_documents = rules + guidance,
+    proportion_rules = if_else(total_documents > 0, rules / total_documents, 0)
+  ) %>%
+  arrange(date)
+
+```
+
+```{r}
+#| label: Unified Yearly data frame
+#| echo: false
+
+## Create yearly summary from the unified monthly data (for visualizations)
+
+unified_yearly <- unified_data %>%
+  mutate(year = as.numeric(year)) %>%
+  group_by(year) %>%
+  summarize(
+    total_rules = sum(rules),
+    total_guidance = sum(guidance),
+    total_documents = sum(total_documents),
+    proportion_rules = if_else(total_documents > 0, total_rules / total_documents, 0)
+  ) %>%
+  arrange(year)
+
+
+```
+
+Now, create plots from df data frame
+
+```{r}
+#| label: Total Rules Published Each Year (2000-2024)
+#| echo: false
+
+## Plot 1 - Total Rules Published Each Year (2000-2024)
+ggplot(unified_yearly, aes(x = year, y = total_rules)) +
+  geom_line(color = "steelblue", size = 1) +
+  geom_point(color = "darkred", size = 2) +
+  labs(
+    title = "Total Rules Published Each Year (2000-2024)",
+    x = "Year",
+    y = "Total Rules"
+  ) +
+  theme_minimal()
+```
+
+```{r}
+#| label: Total Guidance Documents Published Each Year (2000-2024)
+#| echo: false
+
+## Plot 1 - Total Guidance Documents Published Each Year (2000-2024)
+ggplot(unified_yearly, aes(x = year, y = total_guidance)) +
+  geom_line(color = "steelblue", size = 1) +
+  geom_point(color = "darkred", size = 2) +
+  labs(
+    title = "Total Guidance Documents Published Each Year (2000-2024)",
+    x = "Year",
+    y = "Total Guidance Documents"
+  ) +
+  theme_minimal()
+```
+
+```{r}
+#| label: Total Documents Published Each Year (2000-2024)
+#| echo: false
+
+## Plot 3 - Total Documents Published Each Year (2000-2024)
+ggplot(unified_yearly, aes(x = year, y = total_documents)) +
+  geom_line(color = "steelblue", size = 1) +
+  geom_point(color = "darkred", size = 2) +
+  labs(
+    title = "Total Documents Published Each Year (2000-2024)",
+    x = "Year",
+    y = "Total Documents"
+  ) +
+  theme_minimal()
+```
+
+```{r}
+#| label: Plot 4 - Proportion of FDA Rules to Total Documents Each Year (2000-2024)
+#| echo: false
+
+## Plot 4 - Proportion of FDA Rules to Total Documents Each Year (2000-2024)
+
+ggplot(unified_yearly, aes(x = year, y = proportion_rules)) +
+  geom_line(color = "steelblue", size = 1) +
+  geom_point(color = "darkred", size = 2) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  labs(
+    title = "Proportion of FDA Rules to Total Documents Each Year (2000-2024)",
+    x = "Year",
+    y = "Proportion of Rules"
+  ) +
+  theme_minimal()
+
+```
+
+```{r}
+#| label: Add Fields to Unified DataSet
+#| echo: false
+
+#adds quarter, transition indicator, and numeric month and year entries to unified df 
+
+#Create seasonal tags
+unified_data <- unified_data |>
+  mutate(
+    quarter = quarter(date)
+  )
+
+# Define election years for clarity
+election_years <- c(2000, 2008, 2016, 2020, 2024)
+
+#adds presidential transition year indicator. Defined as Sep, Oct, Nov, Dec of election year and Jan of the month after. 
+unified_data <- unified_data %>%
+  mutate(
+    year_num = as.numeric(year),
+    month_num = match(month, month.name),
+    transition = if_else(
+      (year_num %in% election_years & month_num %in% 9:12) | 
+      ((year_num - 1) %in% election_years & month_num == 1),
+      1, 0
+    )
+  )
+
+```
+
+## Regression Discontinuity Analysis
+
+$$
+Y_i = \alpha + \tau D_i + \beta X_i + \gamma (D_i \times X_i) + \sum_{m=1}^{11} \delta_m M_{im} + \theta T_i + \epsilon_i
+$$
+
+Where:
+
+-   ($Y_i$): Number of Rules Published in month ($i$).
+
+-   ($\alpha$): Intercept term (baseline level of ($Y$).
+
+-   ($D_i$): Treatment Indicator for month ($i$). $D_i$ = 1 if month $i$ is after June 2024 and 0 otherwise.
+
+-   ($X_i$): Running Variable representing the distance from the cutoff (June 2024) for month $i$). Measured in months: $X_i$ = Number of months since June 2024
+
+    -   ($X_i > 0$): Post-June 2024 (treatment group)
+
+    -   ($X_i < 0$): Pre-June 2024 (control group)
+
+-   ($\beta$): The Treatment Effect
+
+-   ($\gamma$): Coefficient for the interaction between treatment and distance, capturing the change in slope after the cutoff.
+
+-   ($M_{im}$): Monthly Dummy Variables for each month ( $m$, January to December), excluding one month to avoid multicollinearity (January is the reference category).
+
+-   ($\delta_m$): Coefficients for each monthly dummy variable, capturing the effect of being in month ($m$) relative to the reference month.
+
+-   ($T_i$): Presidential Transition Indicator for month ($i$). $T_i = 1$ if the month is either September--December of an election year or January of the year following an election year, and 0 otherwise.
+
+-   ($\theta$): Coefficient capturing the effect associated with presidential transition years.
+
+-   ($\epsilon_i$): Error Term capturing unobserved factors affecting ($Y_i$).
+
+```{r}
+#| label: Define RD Analyses
+#| echo: false
+
+# Define cutoff date (June 29, 2024)
+cutoff_date <- ymd("2024-06-29")
+
+# Create unified RD dataset from unified_data
+rd_data_all <- unified_data %>%
+  mutate(
+    publication_date = date,  # 'date' comes from unified_data
+    # Calculate distance in full months from the cutoff:
+    distance = (year(publication_date) - year(cutoff_date)) * 12 +
+               (month(publication_date) - month(cutoff_date)),
+    # Create treatment indicator: 1 if publication_date is after cutoff, 0 otherwise
+    treatment = ifelse(publication_date > cutoff_date, 1, 0),
+    # Convert 'month' to an ordered factor
+    month = factor(month, levels = month.name, ordered = TRUE)
+  )
+
+# -- Run RD analyses on the entire dataset --
+rd_model_rules_all <- lm(rules ~ treatment * distance + month + transition, data = rd_data_all)
+rd_model_guidance_all <- lm(guidance ~ treatment * distance + month + transition, data = rd_data_all)
+rd_model_total_all <- lm(total_documents ~ treatment * distance + month + transition, data = rd_data_all)
+rd_model_prop_all <- lm(proportion_rules ~ treatment * distance + month + transition, data = rd_data_all)
+
+# -- Create a 6-month band around the cutoff for a localized RD analysis --
+rd_data_band <- rd_data_all %>%
+  filter(publication_date >= cutoff_date %m-% months(6) &
+         publication_date <= cutoff_date %m+% months(6))
+
+rd_model_rules_band <- lm(rules ~ treatment * distance, data = rd_data_band)
+rd_model_guidance_band <- lm(guidance ~ treatment * distance, data = rd_data_band)
+rd_model_total_band <- lm(total_documents ~ treatment * distance, data = rd_data_band)
+rd_model_prop_band <- lm(proportion_rules ~ treatment * distance, data = rd_data_band)
+```
+
+## Analysis for FDA Rules
+
+The model for FDA Rules shows a strongly significant negative relationship with the running variable (distance, p \< 2e-16), suggesting that number of monthly FDA rules published decreases as time progresses. The treatment effect is positive but not statistically significant (p = 0.1068), and the interaction between treatment and distance is not significant either. Several seasonal components (e.g., month\^C, month\^5, month\^7, and month\^8) are significant, while the presidential transition indicator does not have a significant effect.
+
+```{r}
+#| label: RD model for FDA rules
+#| echo: false
+
+summary(rd_model_rules_all)
+
+```
+
+The FDA Rules model (6‑month window) yields an insignificant treatment effect of 7.00 (p = 0.2491). The distance coefficient (0.3143, p = 0.7857) is not significant and the interaction between treatment and distance is borderline (--4.95, p = 0.0660). Overall, the model has an R-squared of 0.50 (adjusted R-squared = 0.21) with a residual standard error of 4.65.
+
+```{r}
+#| label: RD model for FDA rules (6mos band)
+#| echo: false
+
+summary(rd_model_rules_band)
+```
+
+## Analysis for FDA Guidance Documents
+
+The analysis for Guidance Documents indicates that distance has a significant positive effect (p = 0.000426), implying an increase in guidance documents as time increases. However, both the treatment effect and its interaction with distance are not statistically significant. Only one seasonal component (month.L) reaches significance, and the overall explanatory power of the model is low (Adjusted R-squared = 0.04379).
+
+```{r}
+#| label: RD model for FDA Guidance Docs
+#| echo: false
+
+summary(rd_model_guidance_all)
+```
+
+The Guidance Documents model (6‑month window) shows a significant intercept (5.48, p = 0.0433) and a significant treatment effect (10.21, p = 0.0275). The distance effect is not significant (--0.1429, p = 0.8513), while the transition indicator is nearly significant (11.11, p = 0.0517) and the treatment:distance interaction is borderline (--3.31, p = 0.0633). This model explains a fair amount of variation (R-squared = 0.69, adjusted R-squared = 0.51).
+
+```{r}
+#| label: RD model for FDA Guidance Docs (6mos band)
+#| echo: false
+
+summary(rd_model_guidance_band)
+```
+
+## Analysis for Total FDA Documents (Rules + Guidance)
+
+In the Total Documents model, the distance variable is significantly negatively related to the total count (p = 0.0138), suggesting a decline in total documents with increasing distance from the cutoff. The treatment effect and its interaction with distance are not significant, although some seasonal factors (notably month.L and month\^7) are. The model fit is modest, with an Adjusted R-squared of 0.03962.
+
+```{r}
+#| label: RD model for FDA total docs
+#| echo: false
+
+summary(rd_model_total_all)
+```
+
+In the Total Documents model, the distance variable is significantly negatively related to the total count (p = 0.0138), suggesting a decline in total documents with increasing distance from the beginning of the dataset. The treatment effect and its interaction with distance are not significant, although some seasonal factors (notably month.L and month\^7) are. The model fit is modest, with an Adjusted R-squared of 0.03962.
+
+```{r}
+#| label: RD model for FDA total docs (6 mos)
+#| echo: false
+
+summary(rd_model_total_band)
+```
+
+## Analysis for Proportion of FDA Rules to Total Documents
+
+The proportion model shows a highly significant negative effect of distance (p \< 2e-16), indicating that the proportion of rules declines as one progresses through the time period. The treatment effect and its interaction are not significant, but some seasonal effects (month.L and month.C) are statistically significant. This model has a comparatively higher explanatory power (Adjusted R-squared = 0.367).
+
+```{r}
+#| label: RD model for FDA prop
+#| echo: false
+
+summary(rd_model_prop_all)
+```
+
+The Proportion model (6‑month window) displays a significant intercept (0.4995, p = 0.0108); however, the treatment (--0.1174, p = 0.6399), distance (0.0320, p = 0.5255), transition (0.1636, p = 0.6139), and their interaction (--0.08065, p = 0.4379) are not statistically significant. With an adjusted R-squared of --0.2938, this model has poor explanatory power for the proportion of FDA rules.
+
+```{r}
+#| label: RD model for FDA prop (6 mos band)
+#| echo: false
+
+summary(rd_model_prop_band)
+```
+
+Now, let's visualize the RD regression, displaying the number of rules published in the 7 months before and after the cutoff date

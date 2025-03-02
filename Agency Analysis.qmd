@@ -1,0 +1,112 @@
+---
+title: "Agency Analysis"
+format: pdf
+editor: visual
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+#| label: Load necessary libraries
+library(dplyr)
+library(tidyr)
+library(lubridate)
+library(fixest)  # for fixed effects regression analysis
+
+```
+
+```{r}
+df <- read.csv("ALL RULES 11_13_2023_to_01_19_2025.csv", stringsAsFactors = FALSE)
+
+# Convert publication_date from dd/mm/yyyy to Date format
+df$publication_date <- as.Date(df$publication_date, format = "%m/%d/%Y")
+
+```
+
+You can add options to executable code like this
+
+```{r}
+#| echo: false
+# Split rows for cases where multiple agencies are listed (separated by ";")
+df_long <- df %>%
+  separate_rows(agency_names, sep = ";") %>%
+  mutate(agency_names = trimws(agency_names))  # Remove extra whitespace if present
+
+```
+
+```{r}
+# Create a new variable representing the month (aggregating by month)
+df_long <- df_long %>%
+  mutate(month = floor_date(publication_date, "month"))
+
+```
+
+```{r}
+# Aggregate the data to get a monthly total count of rules per agency
+monthly_counts <- df_long %>%
+  group_by(agency_names, month) %>%
+  summarise(n_rules = n(), .groups = "drop")
+
+```
+
+```{r}
+# Define the cutoff for the RD analysis (June 29, 2024)
+cutoff <- as.Date("2024-06-29")
+
+# Since we aggregate by month (with the month representing the first day), we treat months starting July 2024 as post-cutoff.
+monthly_counts <- monthly_counts %>%
+  mutate(post = if_else(month >= as.Date("2024-07-01"), 1, 0))
+
+```
+
+```{r}
+# Create a 'distance' variable: difference in days between the month and the cutoff.
+# This variable serves as the running variable in an RD design.
+monthly_counts <- monthly_counts %>%
+  mutate(distance = as.numeric(month - cutoff))
+
+```
+
+```{r}
+# Run the RD analysis using a fixed effects regression with agency and month fixed effects
+
+monthly_counts <- monthly_counts %>% filter(month < as.Date("2025-01-01"))
+
+model <- feols(n_rules ~ post * distance | agency_names, data = monthly_counts)
+summary(model)
+
+model_lm <- lm(n_rules ~ post * distance + factor(agency_names), data = monthly_counts)
+summary(model_lm)
+
+
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# Aggregate total rules published per month across all agencies
+monthly_total <- monthly_counts %>%
+  group_by(month) %>%
+  summarise(total_rules = sum(n_rules), .groups = "drop")
+
+# Create a line chart for the total number of rules per month
+ggplot(monthly_total, aes(x = month, y = total_rules)) +
+  geom_line(color = "blue", size = 1) +
+  geom_point(color = "blue", size = 2) +
+  geom_vline(xintercept = as.Date("2024-06-29"), linetype = "dashed", color = "red") +
+  scale_x_date(date_labels = "%b %Y", date_breaks = "1 month") +
+  labs(title = "Total Number of Rules Published Per Month",
+       subtitle = "Aggregated across all agencies; cutoff date shown in red",
+       x = "Month",
+       y = "Total Rules Published") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```

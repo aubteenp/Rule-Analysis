@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.353">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Agency Analysis</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="Agency Analysis_files/libs/clipboard/clipboard.min.js"></script>
+<script src="Agency Analysis_files/libs/quarto-html/quarto.js"></script>
+<script src="Agency Analysis_files/libs/quarto-html/popper.min.js"></script>
+<script src="Agency Analysis_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="Agency Analysis_files/libs/quarto-html/anchor.min.js"></script>
+<link href="Agency Analysis_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="Agency Analysis_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="Agency Analysis_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="Agency Analysis_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="Agency Analysis_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Agency Analysis</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<section id="quarto" class="level2">
+<h2 class="anchored" data-anchor-id="quarto">Quarto</h2>
+<p>Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <a href="https://quarto.org" class="uri">https://quarto.org</a>.</p>
+</section>
+<section id="running-code" class="level2">
+<h2 class="anchored" data-anchor-id="running-code">Running Code</h2>
+<p>When you click the <strong>Render</strong> button a document will be generated that includes both content and the output of embedded code. You can embed code like this:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'dplyr' was built under R version 4.3.3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'dplyr'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:stats':
+
+    filter, lag</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:base':
+
+    intersect, setdiff, setequal, union</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lubridate)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'lubridate' was built under R version 4.3.3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'lubridate'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:base':
+
+    date, intersect, setdiff, union</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(fixest)  <span class="co"># for fixed effects regression analysis</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'fixest' was built under R version 4.3.3</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"ALL RULES 11_13_2023_to_01_19_2025.csv"</span>, <span class="at">stringsAsFactors =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert publication_date from dd/mm/yyyy to Date format</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>df<span class="sc">$</span>publication_date <span class="ot">&lt;-</span> <span class="fu">as.Date</span>(df<span class="sc">$</span>publication_date, <span class="at">format =</span> <span class="st">"%m/%d/%Y"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>You can add options to executable code like this</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a new variable representing the month (aggregating by month)</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>df_long <span class="ot">&lt;-</span> df_long <span class="sc">%&gt;%</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">month =</span> <span class="fu">floor_date</span>(publication_date, <span class="st">"month"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Aggregate the data to get a monthly total count of rules per agency</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>monthly_counts <span class="ot">&lt;-</span> df_long <span class="sc">%&gt;%</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(agency_names, month) <span class="sc">%&gt;%</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">n_rules =</span> <span class="fu">n</span>(), <span class="at">.groups =</span> <span class="st">"drop"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Define the cutoff for the RD analysis (June 29, 2024)</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>cutoff <span class="ot">&lt;-</span> <span class="fu">as.Date</span>(<span class="st">"2024-06-29"</span>)</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Since we aggregate by month (with the month representing the first day), we treat months starting July 2024 as post-cutoff.</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>monthly_counts <span class="ot">&lt;-</span> monthly_counts <span class="sc">%&gt;%</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">post =</span> <span class="fu">if_else</span>(month <span class="sc">&gt;=</span> <span class="fu">as.Date</span>(<span class="st">"2024-07-01"</span>), <span class="dv">1</span>, <span class="dv">0</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a 'distance' variable: difference in days between the month and the cutoff.</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="co"># This variable serves as the running variable in an RD design.</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>monthly_counts <span class="ot">&lt;-</span> monthly_counts <span class="sc">%&gt;%</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">distance =</span> <span class="fu">as.numeric</span>(month <span class="sc">-</span> cutoff))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Run the RD analysis using a fixed effects regression with agency and month fixed effects</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>monthly_counts <span class="ot">&lt;-</span> monthly_counts <span class="sc">%&gt;%</span> <span class="fu">filter</span>(month <span class="sc">&lt;</span> <span class="fu">as.Date</span>(<span class="st">"2025-01-01"</span>))</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">feols</span>(n_rules <span class="sc">~</span> post <span class="sc">*</span> distance <span class="sc">|</span> agency_names, <span class="at">data =</span> monthly_counts)</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>OLS estimation, Dep. Var.: n_rules
+Observations: 980
+Fixed-effects: agency_names: 154
+Standard-errors: Clustered (agency_names) 
+               Estimate Std. Error   t value Pr(&gt;|t|)    
+post          -0.768386   0.361426 -2.125986 0.035109 *  
+distance       0.005350   0.002523  2.120416 0.035584 *  
+post:distance  0.003130   0.004628  0.676434 0.499786    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 3.41236     Adj. R2: 0.896244
+                Within R2: 0.019822</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>model_lm <span class="ot">&lt;-</span> <span class="fu">lm</span>(n_rules <span class="sc">~</span> post <span class="sc">*</span> distance <span class="sc">+</span> <span class="fu">factor</span>(agency_names), <span class="at">data =</span> monthly_counts)</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model_lm)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = n_rules ~ post * distance + factor(agency_names), 
+    data = monthly_counts)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-20.532  -0.938  -0.083   0.689  33.500 
+
+Coefficients:
+                                                                                           Estimate
+(Intercept)                                                                                2.377065
+post                                                                                      -0.768386
+distance                                                                                   0.005350
+factor(agency_names)Agricultural Marketing Service                                         1.422155
+factor(agency_names)Agriculture Department                                                 7.577300
+factor(agency_names)Alcohol and Tobacco Tax and Trade Bureau                              -0.730838
+factor(agency_names)Alcohol, Tobacco, Firearms, and Explosives Bureau                     -0.564092
+factor(agency_names)Animal and Plant Health Inspection Service                            -0.467874
+factor(agency_names)Architectural and Transportation Barriers Compliance Board            -0.625640
+factor(agency_names)Bureau of the Fiscal Service                                          -1.295147
+factor(agency_names)Centers for Medicare &amp; Medicaid Services                               2.363014
+factor(agency_names)Children and Families Administration                                  -0.156628
+factor(agency_names)Coast Guard                                                           29.434442
+factor(agency_names)Commerce Department                                                   27.148728
+factor(agency_names)Committee for Purchase From People Who Are Blind or Severely Disabled -1.070443
+factor(agency_names)Commodity Credit Corporation                                          -0.588675
+factor(agency_names)Commodity Futures Trading Commission                                  -0.510102
+factor(agency_names)Community Development Financial Institutions Fund                     -1.227266
+factor(agency_names)Community Living Administration                                       -0.820668
+factor(agency_names)Comptroller of the Currency                                           -0.459599
+factor(agency_names)Consumer Financial Protection Bureau                                   1.005871
+factor(agency_names)Consumer Product Safety Commission                                    -0.197665
+factor(agency_names)Copyright Office, Library of Congress                                 -0.451432
+factor(agency_names)Copyright Royalty Board                                                0.320518
+factor(agency_names)Corporation for National and Community Service                        -0.836408
+factor(agency_names)Council on Environmental Quality                                      -1.061417
+factor(agency_names)Defense Acquisition Regulations System                                 1.038174
+factor(agency_names)Defense Department                                                     5.220157
+factor(agency_names)Defense Nuclear Facilities Safety Board                               -0.619567
+factor(agency_names)Delaware River Basin Commission                                       -1.144342
+factor(agency_names)Drug Enforcement Administration                                       -0.552880
+factor(agency_names)Education Department                                                   0.618455
+factor(agency_names)Election Assistance Commission                                        -1.923107
+factor(agency_names)Employee Benefits Security Administration                              0.238105
+factor(agency_names)Employment and Training Administration                                -0.327859
+factor(agency_names)Energy Department                                                      3.363014
+factor(agency_names)Engineers Corps                                                       -1.295147
+factor(agency_names)Environmental Protection Agency                                       27.577300
+factor(agency_names)Equal Employment Opportunity Commission                               -0.279032
+factor(agency_names)Executive Office for Immigration Review                               -1.103705
+factor(agency_names)Farm Credit Administration                                            -0.046170
+factor(agency_names)Farm Credit System Insurance Corporation                               0.585929
+factor(agency_names)Farm Service Agency                                                   -0.888525
+factor(agency_names)Federal Aviation Administration                                       49.291585
+factor(agency_names)Federal Communications Commission                                      8.863014
+factor(agency_names)Federal Crop Insurance Corporation                                    -1.226699
+factor(agency_names)Federal Deposit Insurance Corporation                                 -0.126266
+factor(agency_names)Federal Election Commission                                           -0.006134
+factor(agency_names)Federal Emergency Management Agency                                   -1.000551
+factor(agency_names)Federal Energy Regulatory Commission                                  -0.546254
+factor(agency_names)Federal Highway Administration                                        -0.400995
+factor(agency_names)Federal Housing Finance Agency                                        -0.518319
+factor(agency_names)Federal Labor Relations Authority                                     -0.162733
+factor(agency_names)Federal Maritime Commission                                            0.086085
+factor(agency_names)Federal Mediation and Conciliation Service                            -0.167972
+factor(agency_names)Federal Motor Carrier Safety Administration                           -0.129692
+factor(agency_names)Federal Railroad Administration                                       -0.492258
+factor(agency_names)Federal Register Office                                               -0.923107
+factor(agency_names)Federal Reserve System                                                 0.648499
+factor(agency_names)Federal Retirement Thrift Investment Board                             0.264931
+factor(agency_names)Federal Trade Commission                                              -0.030048
+factor(agency_names)Federal Transit Administration                                        -0.731753
+factor(agency_names)Financial Crimes Enforcement Network                                  -0.403058
+factor(agency_names)Financial Research Office                                             -1.061417
+factor(agency_names)Financial Stability Oversight Council                                 -0.087722
+factor(agency_names)Fiscal Service                                                        -0.576353
+factor(agency_names)Fish and Wildlife Service                                              2.038174
+factor(agency_names)Food and Drug Administration                                           3.434442
+factor(agency_names)Food and Nutrition Service                                             0.170647
+factor(agency_names)Food Safety and Inspection Service                                    -0.943610
+factor(agency_names)Foreign-Trade Zones Board                                             -0.579920
+factor(agency_names)Foreign Assets Control Office                                          3.148728
+factor(agency_names)Forest Service                                                        -0.776961
+factor(agency_names)General Services Administration                                        3.648728
+factor(agency_names)Government Accountability Office                                      -1.227266
+factor(agency_names)Government Ethics Office                                              -0.875633
+factor(agency_names)Great Lakes St. Lawrence Seaway Development Corporation               -0.635466
+factor(agency_names)Gulf Coast Ecosystem Restoration Council                              -1.151411
+factor(agency_names)Health and Human Services Department                                  12.220157
+factor(agency_names)Health Data, Technology, and Interoperability: Certification Program  -0.735069
+factor(agency_names)Homeland Security Department                                          33.720157
+factor(agency_names)Housing and Urban Development Department                               1.361544
+factor(agency_names)Indian Affairs Bureau                                                 -0.871579
+factor(agency_names)Indian Health Service                                                 -0.894722
+factor(agency_names)Industry and Security Bureau                                           2.505871
+factor(agency_names)Interior Department                                                    6.434442
+factor(agency_names)Internal Revenue Service                                               2.666317
+factor(agency_names)International Development Finance Corporation                         -1.061417
+factor(agency_names)International Trade Administration                                    -0.342717
+factor(agency_names)Investment Security Office                                             1.331298
+factor(agency_names)Justice Department                                                     1.248739
+factor(agency_names)Labor Department                                                       1.148728
+factor(agency_names)Land Management Bureau                                                -0.127513
+factor(agency_names)Legal Services Corporation                                            -0.695858
+factor(agency_names)Library of Congress                                                    0.444792
+factor(agency_names)Management and Budget Office                                          -0.511333
+factor(agency_names)Maritime Administration                                               -0.585664
+factor(agency_names)Merit Systems Protection Board                                        -0.877416
+factor(agency_names)Mine Safety and Health Administration                                 -0.742717
+factor(agency_names)Minority Business Development Agency                                  -1.923107
+factor(agency_names)National Aeronautics and Space Administration                          2.309606
+factor(agency_names)National Archives and Records Administration                          -0.341251
+factor(agency_names)National Credit Union Administration                                  -0.634221
+factor(agency_names)National Endowment for the Arts                                       -0.496995
+factor(agency_names)National Foundation on the Arts and the Humanities                    -0.496995
+factor(agency_names)National Highway Traffic Safety Administration                         0.199765
+factor(agency_names)National Indian Gaming Commission                                     -0.414071
+factor(agency_names)National Institute of Food and Agriculture                            -1.405816
+factor(agency_names)National Institute of Standards and Technology                        -0.248222
+factor(agency_names)National Labor Relations Board                                        -0.526108
+factor(agency_names)National Oceanic and Atmospheric Administration                       20.648728
+factor(agency_names)National Park Service                                                 -0.617130
+factor(agency_names)National Telecommunications and Information Administration            -0.087722
+factor(agency_names)National Transportation Safety Board                                  -0.414071
+factor(agency_names)Natural Resources Conservation Service                                -0.888525
+factor(agency_names)Natural Resources Revenue Office                                      -0.414071
+factor(agency_names)Nuclear Regulatory Commission                                          2.288531
+factor(agency_names)Occupational Safety and Health Administration                         -0.941066
+factor(agency_names)Ocean Energy Management Bureau                                        -0.683268
+factor(agency_names)Office of Inspector General                                           -0.248222
+factor(agency_names)Office of the Secretary                                                3.648728
+factor(agency_names)Office of the Secretary of the Treasury                               -0.414071
+factor(agency_names)Patent and Trademark Office                                           -0.476772
+factor(agency_names)Peace Corps                                                           -1.063200
+factor(agency_names)Pension Benefit Guaranty Corporation                                  -0.301563
+factor(agency_names)Personnel Management Office                                            0.164056
+factor(agency_names)Pipeline and Hazardous Materials Safety Administration                -0.349333
+factor(agency_names)Postal Regulatory Commission                                          -0.234222
+factor(agency_names)Postal Service                                                         0.499078
+factor(agency_names)Prisons Bureau                                                        -0.459743
+factor(agency_names)Railroad Retirement Board                                             -0.689339
+factor(agency_names)Reclamation Bureau                                                    -0.087722
+factor(agency_names)Rural Business-Cooperative Service                                    -0.523430
+factor(agency_names)Rural Housing Service                                                  0.135137
+factor(agency_names)Rural Utilities Service                                               -0.741963
+factor(agency_names)Safety and Environmental Enforcement Bureau                           -1.151906
+factor(agency_names)Securities and Exchange Commission                                     0.472586
+factor(agency_names)Selective Service System                                              -0.345888
+factor(agency_names)Small Business Administration                                         -0.205353
+factor(agency_names)Social Security Administration                                        -0.320518
+factor(agency_names)State Department                                                      -0.009218
+factor(agency_names)Surface Mining Reclamation and Enforcement Office                      0.426645
+factor(agency_names)Surface Transportation Board                                          -0.628856
+factor(agency_names)Susquehanna River Basin Commission                                    -1.151411
+factor(agency_names)Tennessee Valley Authority                                            -1.923107
+factor(agency_names)Transportation Department                                             54.863014
+factor(agency_names)Transportation Security Administration                                -0.939282
+factor(agency_names)Treasury Department                                                   12.005871
+factor(agency_names)U.S. Citizenship and Immigration Services                             -0.625640
+factor(agency_names)U.S. Customs and Border Protection                                    -0.492815
+factor(agency_names)U.S. Immigration and Customs Enforcement                              -0.900918
+factor(agency_names)United States Agency for Global Media                                 -1.923107
+factor(agency_names)United States Mint                                                    -1.151411
+factor(agency_names)Veterans Affairs Department                                            1.077300
+factor(agency_names)Wage and Hour Division                                                -0.412699
+factor(agency_names)Workers' Compensation Programs Office                                 -0.987606
+post:distance                                                                              0.003130
+                                                                                          Std. Error
+(Intercept)                                                                                 1.690460
+post                                                                                        0.512327
+distance                                                                                    0.002436
+factor(agency_names)Agricultural Marketing Service                                          1.960745
+factor(agency_names)Agriculture Department                                                  1.941575
+factor(agency_names)Alcohol and Tobacco Tax and Trade Bureau                                2.079108
+factor(agency_names)Alcohol, Tobacco, Firearms, and Explosives Bureau                       3.119254
+factor(agency_names)Animal and Plant Health Inspection Service                              2.124120
+factor(agency_names)Architectural and Transportation Barriers Compliance Board              4.092344
+factor(agency_names)Bureau of the Fiscal Service                                            2.723002
+factor(agency_names)Centers for Medicare &amp; Medicaid Services                                1.941575
+factor(agency_names)Children and Families Administration                                    2.182881
+factor(agency_names)Coast Guard                                                             1.941575
+factor(agency_names)Commerce Department                                                     1.941575
+factor(agency_names)Committee for Purchase From People Who Are Blind or Severely Disabled   3.116991
+factor(agency_names)Commodity Credit Corporation                                            2.499240
+factor(agency_names)Commodity Futures Trading Commission                                    2.042247
+factor(agency_names)Community Development Financial Institutions Fund                       4.085226
+factor(agency_names)Community Living Administration                                         3.116191
+factor(agency_names)Comptroller of the Currency                                             2.080649
+factor(agency_names)Consumer Financial Protection Bureau                                    1.941575
+factor(agency_names)Consumer Product Safety Commission                                      2.256108
+factor(agency_names)Copyright Office, Library of Congress                                   2.360844
+factor(agency_names)Copyright Royalty Board                                                 2.261279
+factor(agency_names)Corporation for National and Community Service                          2.256709
+factor(agency_names)Council on Environmental Quality                                        4.081932
+factor(agency_names)Defense Acquisition Regulations System                                  1.961182
+factor(agency_names)Defense Department                                                      1.941575
+factor(agency_names)Defense Nuclear Facilities Safety Board                                 3.121178
+factor(agency_names)Delaware River Basin Commission                                         3.121127
+factor(agency_names)Drug Enforcement Administration                                         2.079847
+factor(agency_names)Education Department                                                    2.010057
+factor(agency_names)Election Assistance Commission                                          4.095499
+factor(agency_names)Employee Benefits Security Administration                               2.181678
+factor(agency_names)Employment and Training Administration                                  2.257065
+factor(agency_names)Energy Department                                                       1.941575
+factor(agency_names)Engineers Corps                                                         2.723002
+factor(agency_names)Environmental Protection Agency                                         1.941575
+factor(agency_names)Equal Employment Opportunity Commission                                 2.355906
+factor(agency_names)Executive Office for Immigration Review                                 2.358597
+factor(agency_names)Farm Credit Administration                                              2.359994
+factor(agency_names)Farm Credit System Insurance Corporation                                4.082437
+factor(agency_names)Farm Service Agency                                                     4.086804
+factor(agency_names)Federal Aviation Administration                                         1.941575
+factor(agency_names)Federal Communications Commission                                       1.941575
+factor(agency_names)Federal Crop Insurance Corporation                                      2.503442
+factor(agency_names)Federal Deposit Insurance Corporation                                   2.080649
+factor(agency_names)Federal Election Commission                                             2.356306
+factor(agency_names)Federal Emergency Management Agency                                     2.360914
+factor(agency_names)Federal Energy Regulatory Commission                                    2.079090
+factor(agency_names)Federal Highway Administration                                          2.499443
+factor(agency_names)Federal Housing Finance Agency                                          2.256639
+factor(agency_names)Federal Labor Relations Authority                                       2.503465
+factor(agency_names)Federal Maritime Commission                                             2.356592
+factor(agency_names)Federal Mediation and Conciliation Service                              3.127408
+factor(agency_names)Federal Motor Carrier Safety Administration                             2.126002
+factor(agency_names)Federal Railroad Administration                                         2.257154
+factor(agency_names)Federal Register Office                                                 4.095499
+factor(agency_names)Federal Reserve System                                                  2.010924
+factor(agency_names)Federal Retirement Thrift Investment Board                              4.079525
+factor(agency_names)Federal Trade Commission                                                1.983088
+factor(agency_names)Federal Transit Administration                                          2.721946
+factor(agency_names)Financial Crimes Enforcement Network                                    2.186137
+factor(agency_names)Financial Research Office                                               4.081932
+factor(agency_names)Financial Stability Oversight Council                                   4.090751
+factor(agency_names)Fiscal Service                                                          2.721260
+factor(agency_names)Fish and Wildlife Service                                               1.961182
+factor(agency_names)Food and Drug Administration                                            1.941575
+factor(agency_names)Food and Nutrition Service                                              2.361480
+factor(agency_names)Food Safety and Inspection Service                                      2.256197
+factor(agency_names)Foreign-Trade Zones Board                                               4.080279
+factor(agency_names)Foreign Assets Control Office                                           1.941575
+factor(agency_names)Forest Service                                                          2.079096
+factor(agency_names)General Services Administration                                         1.941575
+factor(agency_names)Government Accountability Office                                        4.085226
+factor(agency_names)Government Ethics Office                                                2.719679
+factor(agency_names)Great Lakes St. Lawrence Seaway Development Corporation                 2.724032
+factor(agency_names)Gulf Coast Ecosystem Restoration Council                                4.084402
+factor(agency_names)Health and Human Services Department                                    1.941575
+factor(agency_names)Health Data, Technology, and Interoperability: Certification Program    4.079525
+factor(agency_names)Homeland Security Department                                            1.941575
+factor(agency_names)Housing and Urban Development Department                                2.040871
+factor(agency_names)Indian Affairs Bureau                                                   2.501638
+factor(agency_names)Indian Health Service                                                   3.116827
+factor(agency_names)Industry and Security Bureau                                            1.941575
+factor(agency_names)Interior Department                                                     1.941575
+factor(agency_names)Internal Revenue Service                                                1.961295
+factor(agency_names)International Development Finance Corporation                           4.081932
+factor(agency_names)International Trade Administration                                      2.356900
+factor(agency_names)Investment Security Office                                              4.088854
+factor(agency_names)Justice Department                                                      1.960879
+factor(agency_names)Labor Department                                                        1.941575
+factor(agency_names)Land Management Bureau                                                  2.041108
+factor(agency_names)Legal Services Corporation                                              2.498501
+factor(agency_names)Library of Congress                                                     2.081674
+factor(agency_names)Management and Budget Office                                            2.721219
+factor(agency_names)Maritime Administration                                                 3.123895
+factor(agency_names)Merit Systems Protection Board                                          2.719673
+factor(agency_names)Mine Safety and Health Administration                                   2.356900
+factor(agency_names)Minority Business Development Agency                                    4.095499
+factor(agency_names)National Aeronautics and Space Administration                           1.984075
+factor(agency_names)National Archives and Records Administration                            2.722543
+factor(agency_names)National Credit Union Administration                                    2.126954
+factor(agency_names)National Endowment for the Arts                                         3.118220
+factor(agency_names)National Foundation on the Arts and the Humanities                      3.118220
+factor(agency_names)National Highway Traffic Safety Administration                          1.984225
+factor(agency_names)National Indian Gaming Commission                                       4.082437
+factor(agency_names)National Institute of Food and Agriculture                              4.085071
+factor(agency_names)National Institute of Standards and Technology                          4.085989
+factor(agency_names)National Labor Relations Board                                          2.497997
+factor(agency_names)National Oceanic and Atmospheric Administration                         1.941575
+factor(agency_names)National Park Service                                                   2.355796
+factor(agency_names)National Telecommunications and Information Administration              4.090751
+factor(agency_names)National Transportation Safety Board                                    4.082437
+factor(agency_names)Natural Resources Conservation Service                                  4.086804
+factor(agency_names)Natural Resources Revenue Office                                        4.082437
+factor(agency_names)Nuclear Regulatory Commission                                           1.960645
+factor(agency_names)Occupational Safety and Health Administration                           2.357631
+factor(agency_names)Ocean Energy Management Bureau                                          2.355629
+factor(agency_names)Office of Inspector General                                             4.085989
+factor(agency_names)Office of the Secretary                                                 1.941575
+factor(agency_names)Office of the Secretary of the Treasury                                 4.082437
+factor(agency_names)Patent and Trademark Office                                             2.181841
+factor(agency_names)Peace Corps                                                             2.723732
+factor(agency_names)Pension Benefit Guaranty Corporation                                    2.124779
+factor(agency_names)Personnel Management Office                                             1.983688
+factor(agency_names)Pipeline and Hazardous Materials Safety Administration                  2.256351
+factor(agency_names)Postal Regulatory Commission                                            3.117423
+factor(agency_names)Postal Service                                                          1.960745
+factor(agency_names)Prisons Bureau                                                          2.505360
+factor(agency_names)Railroad Retirement Board                                               3.117531
+factor(agency_names)Reclamation Bureau                                                      4.090751
+factor(agency_names)Rural Business-Cooperative Service                                      2.259747
+factor(agency_names)Rural Housing Service                                                   2.079227
+factor(agency_names)Rural Utilities Service                                                 2.184701
+factor(agency_names)Safety and Environmental Enforcement Bureau                             2.357555
+factor(agency_names)Securities and Exchange Commission                                      1.961721
+factor(agency_names)Selective Service System                                                2.720559
+factor(agency_names)Small Business Administration                                           1.961086
+factor(agency_names)Social Security Administration                                          2.255606
+factor(agency_names)State Department                                                        1.984725
+factor(agency_names)Surface Mining Reclamation and Enforcement Office                       2.124466
+factor(agency_names)Surface Transportation Board                                            2.499308
+factor(agency_names)Susquehanna River Basin Commission                                      4.084402
+factor(agency_names)Tennessee Valley Authority                                              4.095499
+factor(agency_names)Transportation Department                                               1.941575
+factor(agency_names)Transportation Security Administration                                  2.498619
+factor(agency_names)Treasury Department                                                     1.941575
+factor(agency_names)U.S. Citizenship and Immigration Services                               4.092344
+factor(agency_names)U.S. Customs and Border Protection                                      2.009614
+factor(agency_names)U.S. Immigration and Customs Enforcement                                4.080072
+factor(agency_names)United States Agency for Global Media                                   4.095499
+factor(agency_names)United States Mint                                                      4.084402
+factor(agency_names)Veterans Affairs Department                                             1.941575
+factor(agency_names)Wage and Hour Division                                                  2.722775
+factor(agency_names)Workers' Compensation Programs Office                                   2.723254
+post:distance                                                                               0.004376
+                                                                                          t value
+(Intercept)                                                                                 1.406
+post                                                                                       -1.500
+distance                                                                                    2.196
+factor(agency_names)Agricultural Marketing Service                                          0.725
+factor(agency_names)Agriculture Department                                                  3.903
+factor(agency_names)Alcohol and Tobacco Tax and Trade Bureau                               -0.352
+factor(agency_names)Alcohol, Tobacco, Firearms, and Explosives Bureau                      -0.181
+factor(agency_names)Animal and Plant Health Inspection Service                             -0.220
+factor(agency_names)Architectural and Transportation Barriers Compliance Board             -0.153
+factor(agency_names)Bureau of the Fiscal Service                                           -0.476
+factor(agency_names)Centers for Medicare &amp; Medicaid Services                                1.217
+factor(agency_names)Children and Families Administration                                   -0.072
+factor(agency_names)Coast Guard                                                            15.160
+factor(agency_names)Commerce Department                                                    13.983
+factor(agency_names)Committee for Purchase From People Who Are Blind or Severely Disabled  -0.343
+factor(agency_names)Commodity Credit Corporation                                           -0.236
+factor(agency_names)Commodity Futures Trading Commission                                   -0.250
+factor(agency_names)Community Development Financial Institutions Fund                      -0.300
+factor(agency_names)Community Living Administration                                        -0.263
+factor(agency_names)Comptroller of the Currency                                            -0.221
+factor(agency_names)Consumer Financial Protection Bureau                                    0.518
+factor(agency_names)Consumer Product Safety Commission                                     -0.088
+factor(agency_names)Copyright Office, Library of Congress                                  -0.191
+factor(agency_names)Copyright Royalty Board                                                 0.142
+factor(agency_names)Corporation for National and Community Service                         -0.371
+factor(agency_names)Council on Environmental Quality                                       -0.260
+factor(agency_names)Defense Acquisition Regulations System                                  0.529
+factor(agency_names)Defense Department                                                      2.689
+factor(agency_names)Defense Nuclear Facilities Safety Board                                -0.199
+factor(agency_names)Delaware River Basin Commission                                        -0.367
+factor(agency_names)Drug Enforcement Administration                                        -0.266
+factor(agency_names)Education Department                                                    0.308
+factor(agency_names)Election Assistance Commission                                         -0.470
+factor(agency_names)Employee Benefits Security Administration                               0.109
+factor(agency_names)Employment and Training Administration                                 -0.145
+factor(agency_names)Energy Department                                                       1.732
+factor(agency_names)Engineers Corps                                                        -0.476
+factor(agency_names)Environmental Protection Agency                                        14.204
+factor(agency_names)Equal Employment Opportunity Commission                                -0.118
+factor(agency_names)Executive Office for Immigration Review                                -0.468
+factor(agency_names)Farm Credit Administration                                             -0.020
+factor(agency_names)Farm Credit System Insurance Corporation                                0.144
+factor(agency_names)Farm Service Agency                                                    -0.217
+factor(agency_names)Federal Aviation Administration                                        25.387
+factor(agency_names)Federal Communications Commission                                       4.565
+factor(agency_names)Federal Crop Insurance Corporation                                     -0.490
+factor(agency_names)Federal Deposit Insurance Corporation                                  -0.061
+factor(agency_names)Federal Election Commission                                            -0.003
+factor(agency_names)Federal Emergency Management Agency                                    -0.424
+factor(agency_names)Federal Energy Regulatory Commission                                   -0.263
+factor(agency_names)Federal Highway Administration                                         -0.160
+factor(agency_names)Federal Housing Finance Agency                                         -0.230
+factor(agency_names)Federal Labor Relations Authority                                      -0.065
+factor(agency_names)Federal Maritime Commission                                             0.037
+factor(agency_names)Federal Mediation and Conciliation Service                             -0.054
+factor(agency_names)Federal Motor Carrier Safety Administration                            -0.061
+factor(agency_names)Federal Railroad Administration                                        -0.218
+factor(agency_names)Federal Register Office                                                -0.225
+factor(agency_names)Federal Reserve System                                                  0.322
+factor(agency_names)Federal Retirement Thrift Investment Board                              0.065
+factor(agency_names)Federal Trade Commission                                               -0.015
+factor(agency_names)Federal Transit Administration                                         -0.269
+factor(agency_names)Financial Crimes Enforcement Network                                   -0.184
+factor(agency_names)Financial Research Office                                              -0.260
+factor(agency_names)Financial Stability Oversight Council                                  -0.021
+factor(agency_names)Fiscal Service                                                         -0.212
+factor(agency_names)Fish and Wildlife Service                                               1.039
+factor(agency_names)Food and Drug Administration                                            1.769
+factor(agency_names)Food and Nutrition Service                                              0.072
+factor(agency_names)Food Safety and Inspection Service                                     -0.418
+factor(agency_names)Foreign-Trade Zones Board                                              -0.142
+factor(agency_names)Foreign Assets Control Office                                           1.622
+factor(agency_names)Forest Service                                                         -0.374
+factor(agency_names)General Services Administration                                         1.879
+factor(agency_names)Government Accountability Office                                       -0.300
+factor(agency_names)Government Ethics Office                                               -0.322
+factor(agency_names)Great Lakes St. Lawrence Seaway Development Corporation                -0.233
+factor(agency_names)Gulf Coast Ecosystem Restoration Council                               -0.282
+factor(agency_names)Health and Human Services Department                                    6.294
+factor(agency_names)Health Data, Technology, and Interoperability: Certification Program   -0.180
+factor(agency_names)Homeland Security Department                                           17.367
+factor(agency_names)Housing and Urban Development Department                                0.667
+factor(agency_names)Indian Affairs Bureau                                                  -0.348
+factor(agency_names)Indian Health Service                                                  -0.287
+factor(agency_names)Industry and Security Bureau                                            1.291
+factor(agency_names)Interior Department                                                     3.314
+factor(agency_names)Internal Revenue Service                                                1.359
+factor(agency_names)International Development Finance Corporation                          -0.260
+factor(agency_names)International Trade Administration                                     -0.145
+factor(agency_names)Investment Security Office                                              0.326
+factor(agency_names)Justice Department                                                      0.637
+factor(agency_names)Labor Department                                                        0.592
+factor(agency_names)Land Management Bureau                                                 -0.062
+factor(agency_names)Legal Services Corporation                                             -0.279
+factor(agency_names)Library of Congress                                                     0.214
+factor(agency_names)Management and Budget Office                                           -0.188
+factor(agency_names)Maritime Administration                                                -0.187
+factor(agency_names)Merit Systems Protection Board                                         -0.323
+factor(agency_names)Mine Safety and Health Administration                                  -0.315
+factor(agency_names)Minority Business Development Agency                                   -0.470
+factor(agency_names)National Aeronautics and Space Administration                           1.164
+factor(agency_names)National Archives and Records Administration                           -0.125
+factor(agency_names)National Credit Union Administration                                   -0.298
+factor(agency_names)National Endowment for the Arts                                        -0.159
+factor(agency_names)National Foundation on the Arts and the Humanities                     -0.159
+factor(agency_names)National Highway Traffic Safety Administration                          0.101
+factor(agency_names)National Indian Gaming Commission                                      -0.101
+factor(agency_names)National Institute of Food and Agriculture                             -0.344
+factor(agency_names)National Institute of Standards and Technology                         -0.061
+factor(agency_names)National Labor Relations Board                                         -0.211
+factor(agency_names)National Oceanic and Atmospheric Administration                        10.635
+factor(agency_names)National Park Service                                                  -0.262
+factor(agency_names)National Telecommunications and Information Administration             -0.021
+factor(agency_names)National Transportation Safety Board                                   -0.101
+factor(agency_names)Natural Resources Conservation Service                                 -0.217
+factor(agency_names)Natural Resources Revenue Office                                       -0.101
+factor(agency_names)Nuclear Regulatory Commission                                           1.167
+factor(agency_names)Occupational Safety and Health Administration                          -0.399
+factor(agency_names)Ocean Energy Management Bureau                                         -0.290
+factor(agency_names)Office of Inspector General                                            -0.061
+factor(agency_names)Office of the Secretary                                                 1.879
+factor(agency_names)Office of the Secretary of the Treasury                                -0.101
+factor(agency_names)Patent and Trademark Office                                            -0.219
+factor(agency_names)Peace Corps                                                            -0.390
+factor(agency_names)Pension Benefit Guaranty Corporation                                   -0.142
+factor(agency_names)Personnel Management Office                                             0.083
+factor(agency_names)Pipeline and Hazardous Materials Safety Administration                 -0.155
+factor(agency_names)Postal Regulatory Commission                                           -0.075
+factor(agency_names)Postal Service                                                          0.255
+factor(agency_names)Prisons Bureau                                                         -0.184
+factor(agency_names)Railroad Retirement Board                                              -0.221
+factor(agency_names)Reclamation Bureau                                                     -0.021
+factor(agency_names)Rural Business-Cooperative Service                                     -0.232
+factor(agency_names)Rural Housing Service                                                   0.065
+factor(agency_names)Rural Utilities Service                                                -0.340
+factor(agency_names)Safety and Environmental Enforcement Bureau                            -0.489
+factor(agency_names)Securities and Exchange Commission                                      0.241
+factor(agency_names)Selective Service System                                               -0.127
+factor(agency_names)Small Business Administration                                          -0.105
+factor(agency_names)Social Security Administration                                         -0.142
+factor(agency_names)State Department                                                       -0.005
+factor(agency_names)Surface Mining Reclamation and Enforcement Office                       0.201
+factor(agency_names)Surface Transportation Board                                           -0.252
+factor(agency_names)Susquehanna River Basin Commission                                     -0.282
+factor(agency_names)Tennessee Valley Authority                                             -0.470
+factor(agency_names)Transportation Department                                              28.257
+factor(agency_names)Transportation Security Administration                                 -0.376
+factor(agency_names)Treasury Department                                                     6.184
+factor(agency_names)U.S. Citizenship and Immigration Services                              -0.153
+factor(agency_names)U.S. Customs and Border Protection                                     -0.245
+factor(agency_names)U.S. Immigration and Customs Enforcement                               -0.221
+factor(agency_names)United States Agency for Global Media                                  -0.470
+factor(agency_names)United States Mint                                                     -0.282
+factor(agency_names)Veterans Affairs Department                                             0.555
+factor(agency_names)Wage and Hour Division                                                 -0.152
+factor(agency_names)Workers' Compensation Programs Office                                  -0.363
+post:distance                                                                               0.715
+                                                                                          Pr(&gt;|t|)
+(Intercept)                                                                               0.160053
+post                                                                                      0.134051
+distance                                                                                  0.028356
+factor(agency_names)Agricultural Marketing Service                                        0.468466
+factor(agency_names)Agriculture Department                                                0.000103
+factor(agency_names)Alcohol and Tobacco Tax and Trade Bureau                              0.725292
+factor(agency_names)Alcohol, Tobacco, Firearms, and Explosives Bureau                     0.856536
+factor(agency_names)Animal and Plant Health Inspection Service                            0.825718
+factor(agency_names)Architectural and Transportation Barriers Compliance Board            0.878530
+factor(agency_names)Bureau of the Fiscal Service                                          0.634463
+factor(agency_names)Centers for Medicare &amp; Medicaid Services                              0.223930
+factor(agency_names)Children and Families Administration                                  0.942816
+factor(agency_names)Coast Guard                                                            &lt; 2e-16
+factor(agency_names)Commerce Department                                                    &lt; 2e-16
+factor(agency_names)Committee for Purchase From People Who Are Blind or Severely Disabled 0.731369
+factor(agency_names)Commodity Credit Corporation                                          0.813847
+factor(agency_names)Commodity Futures Trading Commission                                  0.802824
+factor(agency_names)Community Development Financial Institutions Fund                     0.763936
+factor(agency_names)Community Living Administration                                       0.792342
+factor(agency_names)Comptroller of the Currency                                           0.825231
+factor(agency_names)Consumer Financial Protection Bureau                                  0.604549
+factor(agency_names)Consumer Product Safety Commission                                    0.930205
+factor(agency_names)Copyright Office, Library of Congress                                 0.848403
+factor(agency_names)Copyright Royalty Board                                               0.887319
+factor(agency_names)Corporation for National and Community Service                        0.711007
+factor(agency_names)Council on Environmental Quality                                      0.794907
+factor(agency_names)Defense Acquisition Regulations System                                0.596697
+factor(agency_names)Defense Department                                                    0.007320
+factor(agency_names)Defense Nuclear Facilities Safety Board                               0.842700
+factor(agency_names)Delaware River Basin Commission                                       0.713979
+factor(agency_names)Drug Enforcement Administration                                       0.790439
+factor(agency_names)Education Department                                                  0.758404
+factor(agency_names)Election Assistance Commission                                        0.638790
+factor(agency_names)Employee Benefits Security Administration                             0.913119
+factor(agency_names)Employment and Training Administration                                0.884542
+factor(agency_names)Energy Department                                                     0.083629
+factor(agency_names)Engineers Corps                                                       0.634463
+factor(agency_names)Environmental Protection Agency                                        &lt; 2e-16
+factor(agency_names)Equal Employment Opportunity Commission                               0.905748
+factor(agency_names)Executive Office for Immigration Review                               0.639944
+factor(agency_names)Farm Credit Administration                                            0.984396
+factor(agency_names)Farm Credit System Insurance Corporation                              0.885911
+factor(agency_names)Farm Service Agency                                                   0.827940
+factor(agency_names)Federal Aviation Administration                                        &lt; 2e-16
+factor(agency_names)Federal Communications Commission                                     5.76e-06
+factor(agency_names)Federal Crop Insurance Corporation                                    0.624261
+factor(agency_names)Federal Deposit Insurance Corporation                                 0.951624
+factor(agency_names)Federal Election Commission                                           0.997924
+factor(agency_names)Federal Emergency Management Agency                                   0.671824
+factor(agency_names)Federal Energy Regulatory Commission                                  0.792819
+factor(agency_names)Federal Highway Administration                                        0.872579
+factor(agency_names)Federal Housing Finance Agency                                        0.818393
+factor(agency_names)Federal Labor Relations Authority                                     0.948187
+factor(agency_names)Federal Maritime Commission                                           0.970869
+factor(agency_names)Federal Mediation and Conciliation Service                            0.957180
+factor(agency_names)Federal Motor Carrier Safety Administration                           0.951372
+factor(agency_names)Federal Railroad Administration                                       0.827415
+factor(agency_names)Federal Register Office                                               0.821728
+factor(agency_names)Federal Reserve System                                                0.747165
+factor(agency_names)Federal Retirement Thrift Investment Board                            0.948236
+factor(agency_names)Federal Trade Commission                                              0.987914
+factor(agency_names)Federal Transit Administration                                        0.788124
+factor(agency_names)Financial Crimes Enforcement Network                                  0.853769
+factor(agency_names)Financial Research Office                                             0.794907
+factor(agency_names)Financial Stability Oversight Council                                 0.982897
+factor(agency_names)Fiscal Service                                                        0.832318
+factor(agency_names)Fish and Wildlife Service                                             0.298990
+factor(agency_names)Food and Drug Administration                                          0.077282
+factor(agency_names)Food and Nutrition Service                                            0.942410
+factor(agency_names)Food Safety and Inspection Service                                    0.675888
+factor(agency_names)Foreign-Trade Zones Board                                             0.887014
+factor(agency_names)Foreign Assets Control Office                                         0.105242
+factor(agency_names)Forest Service                                                        0.708723
+factor(agency_names)General Services Administration                                       0.060562
+factor(agency_names)Government Accountability Office                                      0.763936
+factor(agency_names)Government Ethics Office                                              0.747563
+factor(agency_names)Great Lakes St. Lawrence Seaway Development Corporation               0.815601
+factor(agency_names)Gulf Coast Ecosystem Restoration Council                              0.778088
+factor(agency_names)Health and Human Services Department                                  5.03e-10
+factor(agency_names)Health Data, Technology, and Interoperability: Certification Program  0.857052
+factor(agency_names)Homeland Security Department                                           &lt; 2e-16
+factor(agency_names)Housing and Urban Development Department                              0.504870
+factor(agency_names)Indian Affairs Bureau                                                 0.727626
+factor(agency_names)Indian Health Service                                                 0.774137
+factor(agency_names)Industry and Security Bureau                                          0.197192
+factor(agency_names)Interior Department                                                   0.000960
+factor(agency_names)Internal Revenue Service                                              0.174371
+factor(agency_names)International Development Finance Corporation                         0.794907
+factor(agency_names)International Trade Administration                                    0.884423
+factor(agency_names)Investment Security Office                                            0.744816
+factor(agency_names)Justice Department                                                    0.524415
+factor(agency_names)Labor Department                                                      0.554249
+factor(agency_names)Land Management Bureau                                                0.950202
+factor(agency_names)Legal Services Corporation                                            0.780691
+factor(agency_names)Library of Congress                                                   0.830857
+factor(agency_names)Management and Budget Office                                          0.850997
+factor(agency_names)Maritime Administration                                               0.851331
+factor(agency_names)Merit Systems Protection Board                                        0.747066
+factor(agency_names)Mine Safety and Health Administration                                 0.752747
+factor(agency_names)Minority Business Development Agency                                  0.638790
+factor(agency_names)National Aeronautics and Space Administration                         0.244732
+factor(agency_names)National Archives and Records Administration                          0.900283
+factor(agency_names)National Credit Union Administration                                  0.765639
+factor(agency_names)National Endowment for the Arts                                       0.873405
+factor(agency_names)National Foundation on the Arts and the Humanities                    0.873405
+factor(agency_names)National Highway Traffic Safety Administration                        0.919832
+factor(agency_names)National Indian Gaming Commission                                     0.919236
+factor(agency_names)National Institute of Food and Agriculture                            0.730833
+factor(agency_names)National Institute of Standards and Technology                        0.951574
+factor(agency_names)National Labor Relations Board                                        0.833242
+factor(agency_names)National Oceanic and Atmospheric Administration                        &lt; 2e-16
+factor(agency_names)National Park Service                                                 0.793416
+factor(agency_names)National Telecommunications and Information Administration            0.982897
+factor(agency_names)National Transportation Safety Board                                  0.919236
+factor(agency_names)Natural Resources Conservation Service                                0.827940
+factor(agency_names)Natural Resources Revenue Office                                      0.919236
+factor(agency_names)Nuclear Regulatory Commission                                         0.243454
+factor(agency_names)Occupational Safety and Health Administration                         0.689881
+factor(agency_names)Ocean Energy Management Bureau                                        0.771845
+factor(agency_names)Office of Inspector General                                           0.951574
+factor(agency_names)Office of the Secretary                                               0.060562
+factor(agency_names)Office of the Secretary of the Treasury                               0.919236
+factor(agency_names)Patent and Trademark Office                                           0.827080
+factor(agency_names)Peace Corps                                                           0.696381
+factor(agency_names)Pension Benefit Guaranty Corporation                                  0.887172
+factor(agency_names)Personnel Management Office                                           0.934108
+factor(agency_names)Pipeline and Hazardous Materials Safety Administration                0.876999
+factor(agency_names)Postal Regulatory Commission                                          0.940127
+factor(agency_names)Postal Service                                                        0.799146
+factor(agency_names)Prisons Bureau                                                        0.854448
+factor(agency_names)Railroad Retirement Board                                             0.825056
+factor(agency_names)Reclamation Bureau                                                    0.982897
+factor(agency_names)Rural Business-Cooperative Service                                    0.816881
+factor(agency_names)Rural Housing Service                                                 0.948195
+factor(agency_names)Rural Utilities Service                                               0.734231
+factor(agency_names)Safety and Environmental Enforcement Bureau                           0.625254
+factor(agency_names)Securities and Exchange Commission                                    0.809690
+factor(agency_names)Selective Service System                                              0.898862
+factor(agency_names)Small Business Administration                                         0.916629
+factor(agency_names)Social Security Administration                                        0.887037
+factor(agency_names)State Department                                                      0.996295
+factor(agency_names)Surface Mining Reclamation and Enforcement Office                     0.840885
+factor(agency_names)Surface Transportation Board                                          0.801404
+factor(agency_names)Susquehanna River Basin Commission                                    0.778088
+factor(agency_names)Tennessee Valley Authority                                            0.638790
+factor(agency_names)Transportation Department                                              &lt; 2e-16
+factor(agency_names)Transportation Security Administration                                0.707073
+factor(agency_names)Treasury Department                                                   9.86e-10
+factor(agency_names)U.S. Citizenship and Immigration Services                             0.878530
+factor(agency_names)U.S. Customs and Border Protection                                    0.806341
+factor(agency_names)U.S. Immigration and Customs Enforcement                              0.825296
+factor(agency_names)United States Agency for Global Media                                 0.638790
+factor(agency_names)United States Mint                                                    0.778088
+factor(agency_names)Veterans Affairs Department                                           0.579142
+factor(agency_names)Wage and Hour Division                                                0.879561
+factor(agency_names)Workers' Compensation Programs Office                                 0.716955
+post:distance                                                                             0.474657
+                                                                                             
+(Intercept)                                                                                  
+post                                                                                         
+distance                                                                                  *  
+factor(agency_names)Agricultural Marketing Service                                           
+factor(agency_names)Agriculture Department                                                ***
+factor(agency_names)Alcohol and Tobacco Tax and Trade Bureau                                 
+factor(agency_names)Alcohol, Tobacco, Firearms, and Explosives Bureau                        
+factor(agency_names)Animal and Plant Health Inspection Service                               
+factor(agency_names)Architectural and Transportation Barriers Compliance Board               
+factor(agency_names)Bureau of the Fiscal Service                                             
+factor(agency_names)Centers for Medicare &amp; Medicaid Services                                 
+factor(agency_names)Children and Families Administration                                     
+factor(agency_names)Coast Guard                                                           ***
+factor(agency_names)Commerce Department                                                   ***
+factor(agency_names)Committee for Purchase From People Who Are Blind or Severely Disabled    
+factor(agency_names)Commodity Credit Corporation                                             
+factor(agency_names)Commodity Futures Trading Commission                                     
+factor(agency_names)Community Development Financial Institutions Fund                        
+factor(agency_names)Community Living Administration                                          
+factor(agency_names)Comptroller of the Currency                                              
+factor(agency_names)Consumer Financial Protection Bureau                                     
+factor(agency_names)Consumer Product Safety Commission                                       
+factor(agency_names)Copyright Office, Library of Congress                                    
+factor(agency_names)Copyright Royalty Board                                                  
+factor(agency_names)Corporation for National and Community Service                           
+factor(agency_names)Council on Environmental Quality                                         
+factor(agency_names)Defense Acquisition Regulations System                                   
+factor(agency_names)Defense Department                                                    ** 
+factor(agency_names)Defense Nuclear Facilities Safety Board                                  
+factor(agency_names)Delaware River Basin Commission                                          
+factor(agency_names)Drug Enforcement Administration                                          
+factor(agency_names)Education Department                                                     
+factor(agency_names)Election Assistance Commission                                           
+factor(agency_names)Employee Benefits Security Administration                                
+factor(agency_names)Employment and Training Administration                                   
+factor(agency_names)Energy Department                                                     .  
+factor(agency_names)Engineers Corps                                                          
+factor(agency_names)Environmental Protection Agency                                       ***
+factor(agency_names)Equal Employment Opportunity Commission                                  
+factor(agency_names)Executive Office for Immigration Review                                  
+factor(agency_names)Farm Credit Administration                                               
+factor(agency_names)Farm Credit System Insurance Corporation                                 
+factor(agency_names)Farm Service Agency                                                      
+factor(agency_names)Federal Aviation Administration                                       ***
+factor(agency_names)Federal Communications Commission                                     ***
+factor(agency_names)Federal Crop Insurance Corporation                                       
+factor(agency_names)Federal Deposit Insurance Corporation                                    
+factor(agency_names)Federal Election Commission                                              
+factor(agency_names)Federal Emergency Management Agency                                      
+factor(agency_names)Federal Energy Regulatory Commission                                     
+factor(agency_names)Federal Highway Administration                                           
+factor(agency_names)Federal Housing Finance Agency                                           
+factor(agency_names)Federal Labor Relations Authority                                        
+factor(agency_names)Federal Maritime Commission                                              
+factor(agency_names)Federal Mediation and Conciliation Service                               
+factor(agency_names)Federal Motor Carrier Safety Administration                              
+factor(agency_names)Federal Railroad Administration                                          
+factor(agency_names)Federal Register Office                                                  
+factor(agency_names)Federal Reserve System                                                   
+factor(agency_names)Federal Retirement Thrift Investment Board                               
+factor(agency_names)Federal Trade Commission                                                 
+factor(agency_names)Federal Transit Administration                                           
+factor(agency_names)Financial Crimes Enforcement Network                                     
+factor(agency_names)Financial Research Office                                                
+factor(agency_names)Financial Stability Oversight Council                                    
+factor(agency_names)Fiscal Service                                                           
+factor(agency_names)Fish and Wildlife Service                                                
+factor(agency_names)Food and Drug Administration                                          .  
+factor(agency_names)Food and Nutrition Service                                               
+factor(agency_names)Food Safety and Inspection Service                                       
+factor(agency_names)Foreign-Trade Zones Board                                                
+factor(agency_names)Foreign Assets Control Office                                            
+factor(agency_names)Forest Service                                                           
+factor(agency_names)General Services Administration                                       .  
+factor(agency_names)Government Accountability Office                                         
+factor(agency_names)Government Ethics Office                                                 
+factor(agency_names)Great Lakes St. Lawrence Seaway Development Corporation                  
+factor(agency_names)Gulf Coast Ecosystem Restoration Council                                 
+factor(agency_names)Health and Human Services Department                                  ***
+factor(agency_names)Health Data, Technology, and Interoperability: Certification Program     
+factor(agency_names)Homeland Security Department                                          ***
+factor(agency_names)Housing and Urban Development Department                                 
+factor(agency_names)Indian Affairs Bureau                                                    
+factor(agency_names)Indian Health Service                                                    
+factor(agency_names)Industry and Security Bureau                                             
+factor(agency_names)Interior Department                                                   ***
+factor(agency_names)Internal Revenue Service                                                 
+factor(agency_names)International Development Finance Corporation                            
+factor(agency_names)International Trade Administration                                       
+factor(agency_names)Investment Security Office                                               
+factor(agency_names)Justice Department                                                       
+factor(agency_names)Labor Department                                                         
+factor(agency_names)Land Management Bureau                                                   
+factor(agency_names)Legal Services Corporation                                               
+factor(agency_names)Library of Congress                                                      
+factor(agency_names)Management and Budget Office                                             
+factor(agency_names)Maritime Administration                                                  
+factor(agency_names)Merit Systems Protection Board                                           
+factor(agency_names)Mine Safety and Health Administration                                    
+factor(agency_names)Minority Business Development Agency                                     
+factor(agency_names)National Aeronautics and Space Administration                            
+factor(agency_names)National Archives and Records Administration                             
+factor(agency_names)National Credit Union Administration                                     
+factor(agency_names)National Endowment for the Arts                                          
+factor(agency_names)National Foundation on the Arts and the Humanities                       
+factor(agency_names)National Highway Traffic Safety Administration                           
+factor(agency_names)National Indian Gaming Commission                                        
+factor(agency_names)National Institute of Food and Agriculture                               
+factor(agency_names)National Institute of Standards and Technology                           
+factor(agency_names)National Labor Relations Board                                           
+factor(agency_names)National Oceanic and Atmospheric Administration                       ***
+factor(agency_names)National Park Service                                                    
+factor(agency_names)National Telecommunications and Information Administration               
+factor(agency_names)National Transportation Safety Board                                     
+factor(agency_names)Natural Resources Conservation Service                                   
+factor(agency_names)Natural Resources Revenue Office                                         
+factor(agency_names)Nuclear Regulatory Commission                                            
+factor(agency_names)Occupational Safety and Health Administration                            
+factor(agency_names)Ocean Energy Management Bureau                                           
+factor(agency_names)Office of Inspector General                                              
+factor(agency_names)Office of the Secretary                                               .  
+factor(agency_names)Office of the Secretary of the Treasury                                  
+factor(agency_names)Patent and Trademark Office                                              
+factor(agency_names)Peace Corps                                                              
+factor(agency_names)Pension Benefit Guaranty Corporation                                     
+factor(agency_names)Personnel Management Office                                              
+factor(agency_names)Pipeline and Hazardous Materials Safety Administration                   
+factor(agency_names)Postal Regulatory Commission                                             
+factor(agency_names)Postal Service                                                           
+factor(agency_names)Prisons Bureau                                                           
+factor(agency_names)Railroad Retirement Board                                                
+factor(agency_names)Reclamation Bureau                                                       
+factor(agency_names)Rural Business-Cooperative Service                                       
+factor(agency_names)Rural Housing Service                                                    
+factor(agency_names)Rural Utilities Service                                                  
+factor(agency_names)Safety and Environmental Enforcement Bureau                              
+factor(agency_names)Securities and Exchange Commission                                       
+factor(agency_names)Selective Service System                                                 
+factor(agency_names)Small Business Administration                                            
+factor(agency_names)Social Security Administration                                           
+factor(agency_names)State Department                                                         
+factor(agency_names)Surface Mining Reclamation and Enforcement Office                        
+factor(agency_names)Surface Transportation Board                                             
+factor(agency_names)Susquehanna River Basin Commission                                       
+factor(agency_names)Tennessee Valley Authority                                               
+factor(agency_names)Transportation Department                                             ***
+factor(agency_names)Transportation Security Administration                                   
+factor(agency_names)Treasury Department                                                   ***
+factor(agency_names)U.S. Citizenship and Immigration Services                                
+factor(agency_names)U.S. Customs and Border Protection                                       
+factor(agency_names)U.S. Immigration and Customs Enforcement                                 
+factor(agency_names)United States Agency for Global Media                                    
+factor(agency_names)United States Mint                                                       
+factor(agency_names)Veterans Affairs Department                                              
+factor(agency_names)Wage and Hour Division                                                   
+factor(agency_names)Workers' Compensation Programs Office                                    
+post:distance                                                                                
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 3.724 on 823 degrees of freedom
+Multiple R-squared:  0.9128,    Adjusted R-squared:  0.8962 
+F-statistic: 55.21 on 156 and 823 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'ggplot2' was built under R version 4.3.3</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Aggregate total rules published per month across all agencies</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>monthly_total <span class="ot">&lt;-</span> monthly_counts <span class="sc">%&gt;%</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(month) <span class="sc">%&gt;%</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">total_rules =</span> <span class="fu">sum</span>(n_rules), <span class="at">.groups =</span> <span class="st">"drop"</span>)</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a line chart for the total number of rules per month</span></span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(monthly_total, <span class="fu">aes</span>(<span class="at">x =</span> month, <span class="at">y =</span> total_rules)) <span class="sc">+</span></span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">color =</span> <span class="st">"blue"</span>, <span class="at">size =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">color =</span> <span class="st">"blue"</span>, <span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="fu">as.Date</span>(<span class="st">"2024-06-29"</span>), <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"red"</span>) <span class="sc">+</span></span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_date</span>(<span class="at">date_labels =</span> <span class="st">"%b %Y"</span>, <span class="at">date_breaks =</span> <span class="st">"1 month"</span>) <span class="sc">+</span></span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Total Number of Rules Published Per Month"</span>,</span>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a>       <span class="at">subtitle =</span> <span class="st">"Aggregated across all agencies; cutoff date shown in red"</span>,</span>
+<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Month"</span>,</span>
+<span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Total Rules Published"</span>) <span class="sc">+</span></span>
+<span id="cb23-18"><a href="#cb23-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb23-19"><a href="#cb23-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">45</span>, <span class="at">hjust =</span> <span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
+ℹ Please use `linewidth` instead.</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="Agency-Analysis_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>

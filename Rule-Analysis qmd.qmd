@@ -15,11 +15,22 @@ To investigate these hypotheses, we employ quantitative methods---specifically, 
 ## Running Code
 
 ```{r}
-#| label: Read in csv files
+#| label: Load Libraries
 #| echo: false
 #| warning: false
 
 library(dplyr)
+library(lubridate)
+library(tidyr)
+library(ggplot2)
+library(forecast) #for ITS Model
+library(scales)  #used to plot proportion per year over time
+```
+
+```{r}
+#| label: Read in csv files
+#| echo: false
+#| warning: false
 
 #read csv
 #df <- read.csv("All CMS Rules from 1_14_2025.csv", stringsAsFactors = FALSE)
@@ -39,19 +50,34 @@ df <- df |>
 
 ```
 
+```{r}
+#| label: Read in Guidance Data
+#| echo: false
+
+guidance_df <- read.csv("All FDA Guidance Documents.csv", skip = 1, stringsAsFactors = FALSE)
+
+# Convert 'Issue Date' to Date format and extract year and month
+guidance_df <- guidance_df %>%
+  mutate(
+    publication_date = as.Date(`Issue.Date`, format = "%m/%d/%Y"),
+    year = format(publication_date, "%Y"),
+    month = format(publication_date, "%B")
+  )
+
+# Filter to include only Final Guidance Documents
+guidance_final_df <- guidance_df %>%
+  filter(`Guidance.Status` == "Final")
+
+# Verify the filtering
+#table(guidance_final_df$`Guidance Status`)
+```
+
 Now, create plots from df data frame
 
 ```{r}
 #| label: Grouping Rules by Year and display
 #| echo: false
 #| warning: false
-
-
-library(ggplot2)
-library(lubridate)
-library(dplyr)
-library(tidyr)
-
 
 #generates table with number of rules per year
 rules_per_year <- df |>
@@ -154,7 +180,7 @@ ggplot(rules_per_month_year, aes(x = as.Date(paste(year, month, "01", sep = "-")
   theme_minimal()
 ```
 
-The following graph depicts the data broken into consituent months and highlights Presidential transition years.
+The following graph depicts the data broken into constituent months and highlights Presidential transition years.
 
 ```{r}
 #| label: Cleaning Data for Model
@@ -239,171 +265,6 @@ Where:
 -   ($\epsilon_i$): Error Term capturing unobserved factors affecting ($Y_i$).
 
 ```{r}
-#| label: RD Model
-#| echo: false
-
-library(dplyr)
-library(lubridate)
-
-# Define cutoff date (June 2024)
-cutoff_date <- ymd("2024-06-29")
-
-# Create running variable (distance from cutoff in months)
-rules_per_month_year <- rules_per_month_year |>
-  mutate(
-    publication_date = make_date(year, match(month, month.name), 1),  # First day of the month
-    distance = interval(ymd("2001-01-01"), publication_date) / months(1) - 
-      (interval(ymd("2001-01-01"), cutoff_date) / months(1)),
-    treatment = ifelse(publication_date > cutoff_date, 1, 0)
-  )
-
-# Convert month to factor with correct ordering
-rules_per_month_year <- rules_per_month_year %>%
-  mutate(
-    month = factor(month, levels = month.name, ordered = TRUE),
-    transition = ifelse(year %in% c(2008, 2016, 2020, 2024), 1, 0)
-  )
-
-# Create monthly dummies (excluding January to avoid multicollinearity)
-rules_per_month_year <- rules_per_month_year %>%
-  mutate(
-    month_dummy = factor(month, levels = month.name)
-  )
-
-# Fit the RD model using linear regression
-rd_model <- lm(count ~ treatment + distance + I(distance^2) + 
-                month + transition, data = rules_per_month_year)
-
-# View the summary of the model
-summary(rd_model)
-```
-
-Now, let's visualize the RD regression, displaying the number of rules published in the 7 months before and after the cutoff date
-
-```{r}
-#| label: RD Visualization
-#| echo: false
-
-# Define cutoff date
-cutoff_date <- as.Date("2024-06-29")
-
-# Filter data to include 7 months before and after the cutoff
-plot_data <- rules_per_month_year %>%
-  filter(publication_date >= cutoff_date %m-% months(7) &
-         publication_date <= cutoff_date %m+% months(6))
-
-# Add a column to indicate the side of the cutoff for coloring (optional)
-plot_data <- plot_data %>%
-  mutate(side = ifelse(publication_date < cutoff_date, "Pre", "Post"))
-
-ggplot(plot_data, aes(x = publication_date, y = count)) +
-  geom_point(aes(color = side), size = 2) + 
-  # Add vertical line to mark the discontinuity
-  geom_vline(xintercept = as.numeric(cutoff_date), linetype = "dashed", color = "red", size = 1) +
-  # Add separate linear regression lines for pre- and post-cutoff periods
-  geom_smooth(data = filter(plot_data, publication_date < cutoff_date), 
-              method = "lm", se = FALSE, color = "blue", size = 1) +
-  geom_smooth(data = filter(plot_data, publication_date >= cutoff_date), 
-              method = "lm", se = FALSE, color = "darkgreen", size = 1) +
-  labs(
-    title = "Monthly Rule Count Around June 29, 2024",
-    subtitle = "Displaying 7 months before and after the cutoff",
-    x = "Publication Date",
-    y = "Number of Rules",
-    color = "Period"
-  ) +
-  scale_color_manual(values = c("Pre" = "orange", "Post" = "purple")) +
-  theme_minimal()
-```
-
-Now we'll try an ITS model.
-
-```{r}
-#| label: ITS Model
-#| echo: false
-
-#install.packages("forecast")
-library(forecast)
-library(dplyr)
-library(lubridate)
-# The following variables have already been created:
-# - publication_date: Date object representing the first day of each month
-# - distance: Numeric (months since cutoff; negative before, positive after)
-# - treatment: Binary (1 if post-June 2024, 0 otherwise)
-# - month: Ordered factor (January to December)
-# - transition: Binary (1 if year is 2008, 2016, 2020, 2024; 0 otherwise)
-# - month_dummy: Factor (monthly dummy variables)
-
-# Step 1: Calculate 'Time' and 'TimeAfterIntervention'
-
-min_date <- min(rules_per_month_year$publication_date, na.rm = TRUE)
-
-# Define the start year and month for the time series
-start_year <- year(min_date)
-start_month <- month(min_date)
-
-rules_per_month_year <- rules_per_month_year |>
-  arrange(publication_date) |>  # Ensure data is sorted by date
-  mutate(
-    Time = ((year(publication_date)) - start_year) * 12 + 
-           (month(publication_date) - start_month) + 1,  # +1 to start at 1
-    TimeAfterIntervention = ifelse(treatment == 1, Time - min(Time[treatment == 1]) + 1, 0)  # Time since intervention
-  )
-
-#Define most recent data
-max_date <- max(rules_per_month_year$publication_date, na.rm = TRUE)
-
-# Define the start year and month for the time series
-end_year <- year(max_date)
-end_month <- month(max_date)
-# Convert 'count' to a time series object
-ts_rules <- ts(rules_per_month_year$count, start = c(start_year, start_month), c(end_year, end_month), frequency = 12)
-
-ts_rules
-
-# Define external regressors
-external_regressors <- cbind(
-  Intervention = rules_per_month_year$treatment,
-  TimeAfterIntervention = rules_per_month_year$TimeAfterIntervention
-)
-
-# Fit the ARIMA model with external regressors
-its_model <- auto.arima(ts_rules, xreg = external_regressors, seasonal = TRUE)
-
-# Display the summary
-summary(its_model)
-
-```
-
-```{r}
-#| label: Read in Guidance Data
-#| echo: false
-
-library(dplyr)
-library(lubridate)
-library(tidyr)
-library(ggplot2)
-
-guidance_df <- read.csv("All FDA Guidance Documents.csv", skip = 1, stringsAsFactors = FALSE)
-
-# Convert 'Issue Date' to Date format and extract year and month
-guidance_df <- guidance_df %>%
-  mutate(
-    publication_date = as.Date(`Issue.Date`, format = "%m/%d/%Y"),
-    year = format(publication_date, "%Y"),
-    month = format(publication_date, "%B")
-  )
-
-# Filter to include only Final Guidance Documents
-guidance_final_df <- guidance_df %>%
-  filter(`Guidance.Status` == "Final")
-
-# Verify the filtering
-#table(guidance_final_df$`Guidance Status`)
-
-```
-
-```{r}
 #| label: Aggregating FDA Rules and Final Guidance Counts by Month
 #| echo: false
 
@@ -428,14 +289,12 @@ combined_counts <- combined_counts %>%
 combined_counts <- combined_counts %>%
   mutate(year = as.numeric(year))
 
-# Filter for years 1996 and later
+# Filter for years 2000 and later
 combined_counts <- combined_counts %>%
-  filter(year >= 1996)
+  filter(year >= 2000)
 
 # View the combined counts
 head(combined_counts)
-
-
 ```
 
 ```{r}
@@ -449,12 +308,11 @@ combined_counts <- combined_counts %>%
   )
 
 # Sort the dataframe by 'date' in descending order
-combined_counts_sorted_desc <- combined_counts %>%
-  arrange(desc(date))
+#combined_counts_sorted_desc <- combined_counts %>%
+ # arrange(desc(date))
 
 # Display the first few rows to verify
-head(combined_counts_sorted_desc)
-
+#head(combined_counts_sorted_desc)
 
 ```
 
@@ -468,14 +326,136 @@ combined_counts <- combined_counts %>%
     total_documents = rules + guidance,
     proportion_rules = ifelse(total_documents > 0, rules / total_documents, NA)
   )
+```
+
+```{r}
+#| label: RD Model
+#| echo: false
+
+# Define cutoff date (June 29, 2024)
+cutoff_date <- ymd("2024-06-29")
+
+# Create a unified RD dataset from combined_counts for all three RD analyses
+rd_data_all <- combined_counts %>%
+  mutate(
+    publication_date = date,  # 'date' was created earlier in combined_counts
+    # Calculate distance in full months from the cutoff:
+    distance = (year(publication_date) - year(cutoff_date)) * 12 +
+               (month(publication_date) - month(cutoff_date)),
+    # Create treatment indicator: 1 if publication_date is after cutoff, 0 otherwise
+    treatment = ifelse(publication_date > cutoff_date, 1, 0),
+    # Create a transition indicator for presidential transition years
+    transition = ifelse(year(publication_date) %in% c(2000, 2008, 2016, 2020, 2024), 1, 0),
+    # Convert 'month' to an ordered factor (January is first, December is last)
+    month = factor(month, levels = month.name, ordered = TRUE)
+  )
+
+# Now, fit the three RD models using the unified dataset:
+
+# 1. RD Model for the number of rules
+rd_model_rules <- lm(rules ~ treatment * distance + month + transition, data = rd_data_all)
+summary(rd_model_rules)
+
+# 2. RD Model for the number of guidance documents
+rd_model_guidance <- lm(guidance ~ treatment * distance + month + transition, data = rd_data_all)
+summary(rd_model_guidance)
+
+# 3. RD Model for the total number of documents (rules + guidance)
+rd_model_total <- lm(total_documents ~ treatment * distance + month + transition, data = rd_data_all)
+summary(rd_model_total)
+```
+
+Now, let's visualize the RD regression, displaying the number of rules published in the 7 months before and after the cutoff date
+
+```{r}
+#| label: RD Visualization
+#| echo: false
+
+# Define cutoff date
+cutoff_date <- as.Date("2024-06-29")
+
+# Filter the unified RD dataset to include 7 months before and 6 months after the cutoff
+viz_data <- rd_data_all %>%
+  filter(publication_date >= cutoff_date %m-% months(7) &
+         publication_date <= cutoff_date %m+% months(6)) %>%
+  mutate(period = ifelse(publication_date < cutoff_date, "Pre", "Post"))
+
+# Create the plot using viz_data
+ggplot(viz_data, aes(x = publication_date, y = rules)) +
+  geom_point(aes(color = period), size = 2) + 
+  # Add vertical dashed line to mark the cutoff date
+  geom_vline(xintercept = as.numeric(cutoff_date), linetype = "dashed", color = "red", size = 1) +
+  # Add separate linear regression lines for pre- and post-cutoff periods
+  geom_smooth(data = filter(viz_data, publication_date < cutoff_date), 
+              method = "lm", se = FALSE, color = "blue", size = 1) +
+  geom_smooth(data = filter(viz_data, publication_date >= cutoff_date), 
+              method = "lm", se = FALSE, color = "darkgreen", size = 1) +
+  labs(
+    title = "Monthly Rule Count Around June 29, 2024",
+    subtitle = "Displaying 7 months before and after the cutoff",
+    x = "Publication Date",
+    y = "Number of Rules",
+    color = "Period"
+  ) +
+  scale_color_manual(values = c("Pre" = "orange", "Post" = "purple")) +
+  theme_minimal()
+
+```
+
+Now we'll try an ITS model.
+
+```{r}
+#| label: ITS Model
+#| echo: false
+
+#Employs package "forecast"
+
+
+# Define the intervention date
+intervention_date <- as.Date("2024-06-29")
+
+# Ensure the rules_per_month_year data frame is sorted by the 'date' column
+rules_per_month_year <- rules_per_month_year %>% arrange(date)
+
+# Calculate time variables using a fixed conversion (30.44 days per month)
+rules_per_month_year <- rules_per_month_year %>%
+  mutate(
+    # Calculate time in months since the start date (using 'date')
+    time = as.numeric(date - min(date)) / 30.44,
+    # Binary indicator for intervention (1 if on/after intervention_date, 0 otherwise)
+    intervention = ifelse(date >= intervention_date, 1, 0),
+    # Calculate time corresponding to the intervention date (in months)
+    time0 = as.numeric(intervention_date - min(date)) / 30.44,
+    # For post-intervention observations, time_after is time since intervention; 0 for pre-intervention
+    time_after = ifelse(date >= intervention_date, time - time0, 0)
+  )
+
+# Define the start and end times for the time series
+start_year <- year(min(rules_per_month_year$date))
+start_month <- month(min(rules_per_month_year$date))
+end_year <- year(max(rules_per_month_year$date))
+end_month <- month(max(rules_per_month_year$date))
+
+# Convert 'count' (number of rules) to a time series object (monthly frequency)
+ts_rules <- ts(rules_per_month_year$count, start = c(start_year, start_month), frequency = 12)
+
+# Define external regressors for the ARIMA model
+external_regressors <- cbind(
+  Intervention = rules_per_month_year$intervention,
+  TimeAfterIntervention = rules_per_month_year$time_after
+)
+
+# Fit the ARIMA model with external regressors
+its_model <- auto.arima(ts_rules, xreg = external_regressors, seasonal = TRUE)
+
+# Display the summary of the ITS model
+summary(its_model)
 
 ```
 
 ```{r}
 #| label: plot proportion over time
 #| echo: false
-
-library(ggplot2)
 
 ggplot(combined_counts, aes(x = date, y = proportion_rules)) +
   geom_line(color = "blue", size = 1) +
@@ -498,7 +478,6 @@ ggplot(combined_counts, aes(x = date, y = proportion_rules)) +
 ```{r}
 #| label: plot proportion per year over time
 #| echo: false
-library(scales)  
 combined_counts_yearly <- combined_counts %>%
   mutate(year = as.numeric(year)) %>%  # Ensure 'year' is numeric
   group_by(year) %>%
@@ -568,7 +547,7 @@ rd_data_proportion <- combined_counts %>%
   )
 ```
 
-RD model with only 6 mos before and after cutoff
+RD model for proportion of guidance docs to total documents with only 6 mos before and after cutoff
 
 ```{r}
 #| label: RD Model w/ 6 mos bands
@@ -582,6 +561,7 @@ end_date <- cutoff_date_rd %m+% months(6)
 rd_data_filtered <- rd_data_proportion %>%
   filter(publication_date >= start_date & publication_date <= end_date) %>%
   arrange(publication_date) %>%
+  filter(publication_date < as.Date("2025-01-01")) |>
   mutate(
     # Redefine 'distance' as months since start of window
     distance = interval(start_date, publication_date) / months(1),
@@ -596,7 +576,7 @@ rd_data_filtered <- rd_data_proportion %>%
   )
 
 # Fit the RD model on filtered data
-rd_model_filtered <- lm(proportion_rules ~ treatment + distance + I(distance^2), 
+rd_model_filtered <- lm(proportion_rules ~ treatment * distance, 
                         data = rd_data_filtered)
 
 # View the summary of the filtered RD model
@@ -605,7 +585,7 @@ summary(rd_model_filtered)
 
 ```
 
-RD Model with all data (does not include Jan 2025).
+RD model for proportion of guidance docs to total documents with all data (does not include Jan 2025).
 
 ```{r}
 #| label: Fitting  RD Model for prop of FDA Rules to guidance
@@ -617,7 +597,7 @@ rd_data_proportion_filtered <- rd_data_proportion %>%
 
 
 # Fit the RD model using linear regression
-rd_model_proportion <- lm(proportion_rules ~ treatment + distance + I(distance^2) + 
+rd_model_proportion <- lm(proportion_rules ~ treatment * distance + 
                             month + transition, data = rd_data_proportion_filtered)
 
 # View the summary of the RD model
@@ -636,7 +616,7 @@ cutoff_distance <- as.numeric(interval(start_date, cutoff_date_rd) / months(1))
 # Plot the RD analysis within the 6-month window
 ggplot(rd_data_filtered, aes(x = distance, y = proportion_rules)) +
   geom_point(color = "darkblue") +
-  geom_smooth(method = "lm", formula = y ~ x + I(x^2), se = TRUE, color = "blue", fill = "lightblue") +
+  geom_smooth(method = "lm", formula = y ~ x, se = TRUE, color = "blue", fill = "lightblue") +
   geom_vline(xintercept = cutoff_distance, 
              linetype = "dotted", color = "red", size = 1) +
   annotate("text", 
@@ -706,31 +686,30 @@ ggplot(plot_data, aes(x = date, y = proportion_rules)) +
 #| label: ITS Model for Prop
 #| echo: false
 
-library(forecast)     # For ARIMA modeling
+#library(forecast)     # For ARIMA modeling
 
 
 # Define the intervention date
 intervention_date <- as.Date("2024-06-29")
 
-# Create time variables
+# Create time variables in combined_counts
 combined_counts <- combined_counts %>%
   arrange(date) %>%  # Ensure data is sorted by date
   mutate(
-    # Time since start (in months)
-    time = as.numeric(difftime(date, min(date), units = "weeks")) / 4.345,  # Approximate months
-    
-    # Binary indicator for intervention (1 = post-intervention, 0 = pre-intervention)
+    # Calculate time in months since the start date using 30.44 days per month
+    time = as.numeric(date - min(date)) / 30.44,
+    # Binary indicator for intervention (1 if on/after intervention_date, 0 otherwise)
     intervention = ifelse(date >= intervention_date, 1, 0),
-    
-    # Time after intervention (0 before intervention)
-    time_after = ifelse(date >= intervention_date, time - min(time[intervention == 1]), 0)
+    # Calculate the time (in months) corresponding to the intervention date
+    time0 = as.numeric(intervention_date - min(date)) / 30.44,
+    # For post-intervention observations, time_after is the difference from time0; 0 before intervention
+    time_after = ifelse(date >= intervention_date, time - time0, 0)
   )
 
-# Fit the segmented regression model
+# Fit the segmented regression ITS model
 its_model <- lm(proportion_rules ~ time + intervention + time_after, data = combined_counts)
-
-# View the summary of the model
 summary(its_model)
+
 
 
 ```
