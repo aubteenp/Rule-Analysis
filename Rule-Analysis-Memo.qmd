@@ -1,6 +1,6 @@
 ---
-title: "Rule Analysis Memo"
-format: html
+title: "FDA Rulemaking Memo"
+format: pdf
 editor: visual
 ---
 
@@ -8,9 +8,43 @@ editor: visual
 
 In the summer of 2024, the Supreme Court issued two landmark rulings -- *Ohio v. EPA* on June 27, 2024, and *Loper Bright Enterprises v. Raimondo* on June 28, 2024 -- that transformed the regulatory landscape for federal agencies. In *Ohio v. EPA*, the Court held that an agency's failure to adequately respond to significant public comments during the notice-and-comment process renders its rules arbitrary and capricious. The following day, in *Loper Bright v. Raimondo*, the Court overruled Chevron deference, directing lower courts to interpret statutory ambiguities independently rather than deferring to agency interpretations. In doing so, the Court substantially reduced agency latitude in interpreting legislative "gray areas".
 
-We hypothesize that these decision created an environment where agencies are less likely to publish formal rules due to the increased logistical burden of addressing public comments post-*Ohio v. EPA* and the heightened risk of litigation over statutory interpretations post-*Loper Bright* likely discourage rulemaking. In addition, we propose a broader hypothesis: the overall proportion of formal rules has been decreasing since 2000. This decline is likely driven by a combination of factors. First, evolving expectations for transparency and adaptability have encouraged agencies to favor more flexible, informal governance mechanisms. Second, the cumulative impact of judicial constraints---exemplified by recent rulings---further disincentivizes the proliferation of formal rulemaking.
+We hypothesize that these decision created an environment where agencies are less likely to publish formal rules due to the increased logistical burden of addressing public comments post-*Ohio v. EPA* and the heightened risk of litigation over statutory interpretations post-*Loper Bright*. In addition, we propose a broader hypothesis: the overall proportion of formal rules has been decreasing since 2000. This decline is likely driven by a combination of factors. First, evolving expectations for transparency and adaptability have encouraged agencies to favor more flexible, informal governance mechanisms. Second, the cumulative impact of judicial constraints---exemplified by recent rulings---further disincentivizes the proliferation of formal rulemaking.
 
-To investigate these hypotheses, we employ quantitative methods---specifically, regression-discontinuity and interrupted time series analyses---using the period following the release of Loper Bright Enterprises v. Raimondo (starting June 29, 2024) as a cutoff, complemented by a longitudinal analysis of rulemaking trends dating back to 2000. This study aims to empirically assess how these Supreme Court rulings, in tandem with broader administrative shifts, have impacted agency rulemaking behavior.
+To investigate these hypotheses, we employ quantitative methods---specifically, regression-discontinuity with 6 month bands and interrupted time series analyses starting at January 2000---using the period following the release of *Loper Bright Enterprises v. Raimondo* (starting June 29, 2024) as a cutoff. This study aims to empirically assess how these Supreme Court rulings, in tandem with broader administrative shifts, have impacted agency rulemaking behavior.
+
+## Results
+
+1.  **FDA Rules**
+
+    -   **Decrease Over Time:** There is a highly significant negative relationship with time---indicating that the number of published FDA rules has declined over time.
+
+    -   **Treatment Effect:**
+
+        -   In the full dataset, the treatment effect (post-June 2024) is positive but not statistically significant.
+
+        -   In the 6‑month (1-year window) model, no significant effects (treatment, distance, or interaction) are detected.
+
+2.  **FDA Guidance Documents**
+
+    -   **Increase Over Time:** There is a significant positive relationship with the running variable, suggesting an increase in guidance documents as time progresses.
+
+    -   **Treatment Effect:**
+
+        -   Overall, the treatment effect and its interaction with time are not statistically significant in the full dataset.
+
+        -   The 6‑month window model shows a positive treatment effect that borders on significance, hinting at a possible short‐term increase.
+
+3.  **Total FDA Documents (Rules + Guidance)**
+
+    -   **Aggregate Decline:** A significant decrease in the total number of documents as time progresses.
+
+    -   **No Immediate Shift:** The treatment effect and its interaction are not significant, suggesting that the immediate impact of the rulings on total document output is minimal.
+
+4.  **Proportion of FDA Rules to Total Documents**
+
+    -   **Shifting Composition:** There is a highly significant negative effect of time, meaning that as time progresses, the proportion of formal rules relative to total documents declines.
+
+    -   **Implication:** This supports the broader hypothesis that the FDA is shifting away from formal rule making toward more flexible, informal guidance mechanisms.
 
 ## Running Code
 
@@ -233,7 +267,7 @@ unified_data <- unified_data %>%
 
 ```
 
-## Regression Discontinuity Analysis
+## Regression Specifications
 
 $$
 Y_i = \alpha + \tau D_i + \beta X_i + \gamma (D_i \times X_i) + \sum_{m=1}^{11} \delta_m M_{im} + \theta T_i + \epsilon_i
@@ -241,9 +275,9 @@ $$
 
 Where:
 
--   ($Y_i$): Number of Rules Published in month ($i$).
+-   ($Y_i$): The number of rules, guidance documents, total documents, or the proportion of rules to total documents published in month $i$.
 
--   ($\alpha$): Intercept term (baseline level of ($Y$).
+-   ($\alpha$): Intercept term (baseline level of $Y$).
 
 -   ($D_i$): Treatment Indicator for month ($i$). $D_i$ = 1 if month $i$ is after June 2024 and 0 otherwise.
 
@@ -257,7 +291,7 @@ Where:
 
 -   ($\gamma$): Coefficient for the interaction between treatment and distance, capturing the change in slope after the cutoff.
 
--   ($M_{im}$): Monthly Dummy Variables for each month ( $m$, January to December), excluding one month to avoid multicollinearity (January is the reference category).
+-   ($M_{im}$): Monthly Dummy Variables for each month ( $m$, January to December), excluding one month to avoid multicollinearity (December is the reference category).
 
 -   ($\delta_m$): Coefficients for each monthly dummy variable, capturing the effect of being in month ($m$) relative to the reference month.
 
@@ -304,9 +338,59 @@ rd_model_total_band <- lm(total_documents ~ treatment * distance, data = rd_data
 rd_model_prop_band <- lm(proportion_rules ~ treatment * distance, data = rd_data_band)
 ```
 
+```{r}
+#| label: Define RD Graphs
+#| echo: false
+
+# Function to create an RD graph with left/right linear fits and slope annotations
+plot_rd <- function(data, outcome, y_label, title) {
+  # Split the data into left (pre-cutoff) and right (post-cutoff) samples
+  left_data <- data %>% filter(distance <= 0)
+  right_data <- data %>% filter(distance > 0)
+  
+  # Fit separate linear models on the left and right side
+  left_fit <- lm(as.formula(paste(outcome, "~ distance")), data = left_data)
+  right_fit <- lm(as.formula(paste(outcome, "~ distance")), data = right_data)
+  
+  left_slope <- coef(left_fit)[2]
+  right_slope <- coef(right_fit)[2]
+  
+  # Create the plot
+  ggplot(data, aes(x = distance, y = .data[[outcome]])) +
+    geom_point() +
+    geom_vline(xintercept = 0, linetype = "dashed", color = "red") +
+    geom_smooth(data = left_data, method = "lm", se = FALSE, color = "blue") +
+    geom_smooth(data = right_data, method = "lm", se = FALSE, color = "darkgreen") +
+    annotate("text", 
+             x = min(data$distance, na.rm = TRUE) + 0.5, 
+             y = max(data[[outcome]], na.rm = TRUE), 
+             label = paste("Left slope =", round(left_slope, 3)),
+             hjust = 0, color = "blue") +
+    annotate("text", 
+             x = max(data$distance, na.rm = TRUE) - 0.5, 
+             y = max(data[[outcome]], na.rm = TRUE), 
+             label = paste("Right slope =", round(right_slope, 3)),
+             hjust = 1, color = "darkgreen") +
+    labs(title = title,
+         x = "Distance from Cutoff (months)",
+         y = y_label) +
+    theme_minimal()
+}
+
+# Reminder: rd_data_band has been created by filtering the unified RD dataset to 6 months before and after the cutoff.
+
+# Create graphs for each outcome:
+plot_rules <- plot_rd(rd_data_band, "rules", "Number of Rules", "RD Analysis for FDA Rules (6-Month Band)")
+plot_guidance <- plot_rd(rd_data_band, "guidance", "Number of Guidance Documents", "RD Analysis for FDA Guidance Documents (6-Month Band)")
+plot_total <- plot_rd(rd_data_band, "total_documents", "Total Documents", "RD Analysis for Total FDA Documents (6-Month Band)")
+plot_prop <- plot_rd(rd_data_band, "proportion_rules", "Proportion of FDA Rules", "RD Analysis for Proportion of FDA Rules (6-Month Band)")
+```
+
 ## Analysis for FDA Rules
 
-The model for FDA Rules shows a strongly significant negative relationship with the running variable (distance, p \< 2e-16), suggesting that number of monthly FDA rules published decreases as time progresses. The treatment effect is positive but not statistically significant (p = 0.1068), and the interaction between treatment and distance is not significant either. Several seasonal components (e.g., month\^C, month\^5, month\^7, and month\^8) are significant, while the presidential transition indicator does not have a significant effect.
+#### Entire Dataset
+
+The model for FDA Rules shows a strongly significant negative relationship with the running variable (distance, p \< 2e-16), suggesting that the number of published FDA rules decreases as time progresses. The treatment effect is positive but not statistically significant (p = 0.1068), and the interaction between treatment and distance is not significant either. Several seasonal components (e.g., month\^C, month\^5, month\^7, and month\^8) are significant, while the presidential transition indicator does not have a significant effect.
 
 ```{r}
 #| label: RD model for FDA rules
@@ -316,7 +400,9 @@ summary(rd_model_rules_all)
 
 ```
 
-The FDA Rules model (6‑month window) yields an insignificant treatment effect of 7.00 (p = 0.2491). The distance coefficient (0.3143, p = 0.7857) is not significant and the interaction between treatment and distance is borderline (--4.95, p = 0.0660). Overall, the model has an R-squared of 0.50 (adjusted R-squared = 0.21) with a residual standard error of 4.65.
+#### 1-Year Window
+
+The FDA Rules model (6‑month bandwidth) yields an insignificant treatment, distance coefficient, and interaction between treatment and distance.
 
 ```{r}
 #| label: RD model for FDA rules (6mos band)
@@ -325,7 +411,13 @@ The FDA Rules model (6‑month window) yields an insignificant treatment effect 
 summary(rd_model_rules_band)
 ```
 
+```{r}
+print(plot_rules)
+```
+
 ## Analysis for FDA Guidance Documents
+
+#### Entire Dataset
 
 The analysis for Guidance Documents indicates that distance has a significant positive effect (p = 0.000426), implying an increase in guidance documents as time increases. However, both the treatment effect and its interaction with distance are not statistically significant. Only one seasonal component (month.L) reaches significance, and the overall explanatory power of the model is low (Adjusted R-squared = 0.04379).
 
@@ -336,7 +428,9 @@ The analysis for Guidance Documents indicates that distance has a significant po
 summary(rd_model_guidance_all)
 ```
 
-The Guidance Documents model (6‑month window) shows a significant intercept (5.48, p = 0.0433) and a significant treatment effect (10.21, p = 0.0275). The distance effect is not significant (--0.1429, p = 0.8513), while the transition indicator is nearly significant (11.11, p = 0.0517) and the treatment:distance interaction is borderline (--3.31, p = 0.0633). This model explains a fair amount of variation (R-squared = 0.69, adjusted R-squared = 0.51).
+#### 1-Year Window
+
+The Guidance Documents model (6‑month window) shows a significant positive treatment effect (8.7238, p = 0.0901). The effects of distance and its interaction with treatment are not significant.
 
 ```{r}
 #| label: RD model for FDA Guidance Docs (6mos band)
@@ -345,9 +439,15 @@ The Guidance Documents model (6‑month window) shows a significant intercept (5
 summary(rd_model_guidance_band)
 ```
 
+```{r}
+print(plot_guidance)
+```
+
 ## Analysis for Total FDA Documents (Rules + Guidance)
 
-In the Total Documents model, the distance variable is significantly negatively related to the total count (p = 0.0138), suggesting a decline in total documents with increasing distance from the cutoff. The treatment effect and its interaction with distance are not significant, although some seasonal factors (notably month.L and month\^7) are. The model fit is modest, with an Adjusted R-squared of 0.03962.
+#### Entire Dataset
+
+In the Total Documents model, the distance variable is significantly negatively related to the total count (p = 0.0138), suggesting a decline in total documents as time progresses. The treatment effect and its interaction with distance are not significant, but some seasonal factors (notably month.L and month\^7) are.
 
 ```{r}
 #| label: RD model for FDA total docs
@@ -356,7 +456,7 @@ In the Total Documents model, the distance variable is significantly negatively 
 summary(rd_model_total_all)
 ```
 
-In the Total Documents model, the distance variable is significantly negatively related to the total count (p = 0.0138), suggesting a decline in total documents with increasing distance from the beginning of the dataset. The treatment effect and its interaction with distance are not significant, although some seasonal factors (notably month.L and month\^7) are. The model fit is modest, with an Adjusted R-squared of 0.03962.
+In the Total Documents model (6 month bands), treatment, distance, and their interaction are not significant.
 
 ```{r}
 #| label: RD model for FDA total docs (6 mos)
@@ -365,9 +465,15 @@ In the Total Documents model, the distance variable is significantly negatively 
 summary(rd_model_total_band)
 ```
 
+```{r}
+print(plot_total)
+```
+
 ## Analysis for Proportion of FDA Rules to Total Documents
 
-The proportion model shows a highly significant negative effect of distance (p \< 2e-16), indicating that the proportion of rules declines as one progresses through the time period. The treatment effect and its interaction are not significant, but some seasonal effects (month.L and month.C) are statistically significant. This model has a comparatively higher explanatory power (Adjusted R-squared = 0.367).
+#### Entire Dataset
+
+The proportion model shows a highly significant negative effect of distance (p \< 2e-16), indicating that the proportion of rules declines as one progresses through the time period. The treatment effect and its interaction with distance are not significant, but some seasonal effects (month.L and month.C) are statistically significant. This model has a comparatively higher explanatory power (Adjusted R-squared = 0.367).
 
 ```{r}
 #| label: RD model for FDA prop
@@ -376,7 +482,9 @@ The proportion model shows a highly significant negative effect of distance (p \
 summary(rd_model_prop_all)
 ```
 
-The Proportion model (6‑month window) displays a significant intercept (0.4995, p = 0.0108); however, the treatment (--0.1174, p = 0.6399), distance (0.0320, p = 0.5255), transition (0.1636, p = 0.6139), and their interaction (--0.08065, p = 0.4379) are not statistically significant. With an adjusted R-squared of --0.2938, this model has poor explanatory power for the proportion of FDA rules.
+#### 1-Year Window
+
+For the proportion model with 6‑month bands), treatment, distance, and their interaction are not statistically significant. With an adjusted R-squared of --0.2938, this model has poor explanatory power.
 
 ```{r}
 #| label: RD model for FDA prop (6 mos band)
@@ -386,3 +494,8 @@ summary(rd_model_prop_band)
 ```
 
 Now, let's visualize the RD regression, displaying the number of rules published in the 7 months before and after the cutoff date
+
+```{r}
+print(plot_prop)
+```
+

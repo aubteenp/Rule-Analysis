@@ -186,30 +186,37 @@ The following graph depicts the data broken into constituent months and highligh
 #| label: Cleaning Data for Model
 #| echo: false
 
-#creates data frame with number of rules published in each month of each year
-monthly_counts <- df %>%
-  group_by(year, month) %>%
-  summarise(count = n()) %>%
-  ungroup()
-
 #Create seasonal tags
 df <- df |>
   mutate(
     quarter = quarter(publication_date)
   )
 
-# Define presidential transition years, and create transition indicator
-transition_years <- c(2000, 2008, 2016, 2020, 2024)
+# Define election years for clarity
+election_years <- c(2000, 2008, 2016, 2020, 2024)
 
+#adds presidential transition year indicator. Defined as Sep, Oct, Nov, Dec of election year and Jan of the month after. 
 df <- df %>%
   mutate(
-    transition = ifelse(year %in% transition_years, 1, 0)
+    year_num = as.numeric(year),
+    month_num = match(month, month.name),
+    transition = if_else(
+      (year_num %in% election_years & month_num %in% 9:12) | 
+      ((year_num - 1) %in% election_years & month_num == 1),
+      1, 0
+    )
   )
 
+```
+
+```{r}
+#creates data frame with number of rules published in each month of each year
+monthly_counts <- df %>%
+  group_by(year, month, transition) %>%
+  summarise(count = n()) %>%
+  ungroup()
+
 monthly_counts <- monthly_counts %>%
-  mutate(
-    transition = ifelse(year %in% transition_years, 1, 0)
-  ) |>
     arrange(year, month) %>% 
   # Create a marker when transition status changes compared to the previous row
   # Without this marker, red lines would connect months in adjacent transition years
@@ -344,11 +351,19 @@ rd_data_all <- combined_counts %>%
                (month(publication_date) - month(cutoff_date)),
     # Create treatment indicator: 1 if publication_date is after cutoff, 0 otherwise
     treatment = ifelse(publication_date > cutoff_date, 1, 0),
-    # Create a transition indicator for presidential transition years
-    transition = ifelse(year(publication_date) %in% c(2000, 2008, 2016, 2020, 2024), 1, 0),
-    # Convert 'month' to an ordered factor (January is first, December is last)
+        # Create a numeric month variable from publication_date
+    month_num = as.numeric(format(publication_date, "%m")),
+    # Use the same logic as before: flag September–December of an election year 
+    # and January of the year after an election year
+    transition = if_else(
+      (year %in% election_years & month_num %in% 9:12) |
+      ((year - 1) %in% election_years & month_num == 1),
+      1, 0
+    ),
+    # Convert 'month' to an ordered factor
     month = factor(month, levels = month.name, ordered = TRUE)
   )
+
 
 # Now, fit the three RD models using the unified dataset:
 

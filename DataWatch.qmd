@@ -1,0 +1,839 @@
+---
+title: "DataWatch"
+format: pdf
+editor: visual
+---
+
+## Deck
+
+The U.S. Food and Drug Administration (FDA) has experienced significant shifts in its regulatory approach over the past two decades. This study examines trends in regulatory output from 2000 to 2024 by analyzing two key data sources: formal rules published in the Federal Register and guidance documents available on the FDA website. Formal rules represent the traditional, legally binding regulatory actions, whereas guidance documents offer more flexible policy direction without undergoing the complete notice-and-comment process. By merging these datasets into a unified monthly series and applying regression discontinuity and interrupted time series analyses, we explore how judicial decisions and administrative changes have reshaped the FDA's reliance on formal versus informal regulatory mechanisms. Our investigation provides insights into evolving regulatory strategies and their implications for policy implementation and transparency. Our regression analyses indicate that for each month away from the cutoff, formal FDA rules decline by about 0.033 units and the proportion of rules among all regulatory documents decreases by roughly 0.2 percentage points. Although guidance documents increase by approximately 0.02 units per month, this modest rise does not fully counterbalance the falling trend in formal rulemaking, resulting in a net decline in overall regulatory output.
+
+## Intro
+
+Our analysis reveals four key findings about FDA regulatory output over the past twenty-four years. First, there is a striking decrease in the proportion of formal rules relative to total regulatory documents, suggesting a significant strategic shift away from traditional rulemaking. Second, the annual count of formal FDA rules has steadily declined, highlighting a reduced reliance on conventional regulatory processes. Third, there has been a notable increase in the issuance of guidance documents, indicating a growing preference for more flexible regulatory tools. Finally, despite the rise in guidance documents, the net total of regulatory documents has declined, implying that the increase in guidance has not fully offset the reduction in formal rulemaking. These trends underscore a complex evolution in FDA regulatory practices.
+
+**Data Sources and Methods**
+
+The analysis draws on two primary data sources. Data on formal rules were obtained from the Federal Register, which is the official publication for federal agency rulemaking. This source provides a comprehensive record of all rules and regulations published by federal agencies. In parallel, information on FDA guidance documents was extracted from the FDA webpage's guidance document database. These complementary databases enable a comparison between formal rulemaking and the alternative, less formal guidance approach.
+
+For the period spanning 2000 to 2024, the rule and guidance datasets were cleaned and merged into a unified monthly dataset. This dataset includes counts of rules and guidance documents, the total number of documents, and the calculated proportion of rules to total documents for each month. Missing data points were filled with zeros to ensure a complete and consistent time series. This unified dataset served as the basis for further analysis, including regression discontinuity (RD) and interrupted time series (ITS) models, which assess the impact of key policy changes---specifically the FDA guidance and rulemaking adjustments following landmark judicial decisions in 2024.
+
+## Running Code
+
+```{r}
+#| label: Load Libraries
+#| echo: false
+#| warning: false
+
+library(dplyr)
+library(lubridate)
+library(tidyr)
+library(ggplot2)
+library(forecast) #for ITS Model
+library(scales)  #used to plot proportion per year over time
+```
+
+```{r}
+#| label: Read in csv files
+#| echo: false
+#| warning: false
+
+#read csv
+#df <- read.csv("All CMS Rules from 1_14_2025.csv", stringsAsFactors = FALSE)
+df <- read.csv("All FDA Rules 1_14_2025 to 1_4_1994.csv", stringsAsFactors = FALSE)
+#df <- read.csv("DHHS Pull - 12_1_2023 to 1_19_2025.csv", stringsAsFactors = FALSE)
+#df <- read.csv("ALL RULES 11_13_2023_to_01_19_2025.csv", stringsAsFactors = FALSE)
+
+# 2. Convert 'publication_date' to Date format
+df <- df |>
+  mutate(publication_date = as.Date(publication_date, format = "%m/%d/%Y"), 
+         year = format(publication_date, "%Y"),
+         month = format(publication_date, "%B")
+         )
+
+# View the first few rows to verify
+#df
+
+```
+
+```{r}
+#| label: Read in Guidance Data
+#| echo: false
+
+guidance_df <- read.csv("All FDA Guidance Documents.csv", skip = 1, stringsAsFactors = FALSE)
+
+# Convert 'Issue Date' to Date format and extract year and month
+guidance_df <- guidance_df %>%
+  mutate(
+    publication_date = as.Date(`Issue.Date`, format = "%m/%d/%Y"),
+    year = format(publication_date, "%Y"),
+    month = format(publication_date, "%B")
+  )
+
+# Filter to include only Final Guidance Documents
+guidance_final_df <- guidance_df %>%
+  filter(`Guidance.Status` == "Final")
+
+# Verify the filtering
+#table(guidance_final_df$`Guidance Status`)
+```
+
+```{r}
+#| label: Unified Monthly data frame
+#| echo: false
+
+# Create a unified monthly data frame for the period 2000-2024
+
+# Define the start and end dates for the monthly sequence
+start_date <- as.Date("2000-01-01")
+end_date   <- as.Date("2024-12-31")
+
+# Create a tibble with one row per month in the date range
+unified_monthly <- tibble(date = seq.Date(from = start_date, to = end_date, by = "month")) %>%
+  mutate(
+    year = format(date, "%Y"),
+    month = format(date, "%B")
+  )
+
+# Aggregate rules by month from df
+rules_monthly <- df %>%
+  filter(as.numeric(year) >= 2000, as.numeric(year) <= 2024) %>%
+  group_by(year, month) %>%
+  summarize(rules = n(), .groups = 'drop')
+
+# Aggregate final guidance counts by month from guidance_final_df
+guidance_monthly <- guidance_final_df %>%
+  filter(as.numeric(year) >= 2000, as.numeric(year) <= 2024) %>%
+  group_by(year, month) %>%
+  summarize(guidance = n(), .groups = 'drop')
+
+# Combine the monthly aggregates with the full sequence, ensuring missing counts are set to 0
+unified_data <- unified_monthly %>%
+  left_join(rules_monthly, by = c("year", "month")) %>%
+  left_join(guidance_monthly, by = c("year", "month")) %>%
+  mutate(
+    rules = replace_na(rules, 0),
+    guidance = replace_na(guidance, 0),
+    total_documents = rules + guidance,
+    proportion_rules = if_else(total_documents > 0, rules / total_documents, 0)
+  ) %>%
+  arrange(date)
+
+```
+
+```{r}
+#| label: Unified Yearly data frame
+#| echo: false
+
+## Create yearly summary from the unified monthly data (for visualizations)
+
+unified_yearly <- unified_data %>%
+  mutate(year = as.numeric(year)) %>%
+  group_by(year) %>%
+  summarize(
+    total_rules = sum(rules),
+    total_guidance = sum(guidance),
+    total_documents = sum(total_documents),
+    proportion_rules = if_else(total_documents > 0, total_rules / total_documents, 0)
+  ) %>%
+  arrange(year)
+
+
+```
+
+```{r}
+#| label: Computer Slopes
+
+## Compute slopes from the unified_yearly data for each outcome
+
+# Slope for Total Rules
+slope_rules <- round(coef(lm(total_rules ~ year, data = unified_yearly))[2], 3)
+
+# Slope for Total Guidance Documents
+slope_guidance <- round(coef(lm(total_guidance ~ year, data = unified_yearly))[2], 3)
+
+# Slope for Total Documents
+slope_total <- round(coef(lm(total_documents ~ year, data = unified_yearly))[2], 3)
+
+# Slope for Proportion of FDA Rules
+slope_prop <- round(coef(lm(proportion_rules ~ year, data = unified_yearly))[2], 3)
+
+loess_span <- .6            # 0.8 is Stata’s default; smaller = wigglier curve
+loess_cols <- c("steelblue", "darkred")   # raw line + points colours
+smooth_col <- "steelblue"       # colour for the lowess curve
+pt_col     <- "darkred"
+smooth_col <- "steelblue"
+
+trend_col  <- "black"
+trend_lt   <- "dotted"   # line type for the global trend
+ann_x      <- min(unified_yearly$year) + 10   # x-position for slope label
+
+
+```
+
+**Graph 1: Striking Decrease in the Proportion of FDA Rules to Total Documents Over Time**\
+
+Graph 1 demonstrates a clear, steady decline in the proportion of FDA rules relative to the total regulatory documents (rules plus guidance) from 2000 to 2024. This downward trend highlights a marked shift in regulatory practice, with the FDA increasingly favoring less formal instruments over traditional rulemaking. These findings underscore the possibility that legal, administrative, and political factors are driving the agency toward more flexible, expedient regulatory approaches.
+
+```{r}
+#| label: Plot 4 - Proportion of FDA Rules to Total Documents Each Year (2000-2024)
+#| echo: false
+
+## Plot 4 - Proportion of FDA Rules to Total Documents Each Year (2000-2024)
+
+
+ggplot(unified_yearly, aes(x = year, y = proportion_rules)) +
+  geom_line(colour = loess_cols[1], linewidth = 0.8) +
+  geom_point(colour = loess_cols[2], size = 2) +
+  geom_smooth(method = "loess", span = loess_span, se = FALSE,
+              colour = smooth_col, linewidth = 1.1) +
+  scale_y_continuous(labels = scales::percent) +
+  labs(title = "Share of Formal Rules in FDA Output (2000-2024)",
+       x = "Year", y = "Rules as % of total") +
+  theme_minimal()
+
+```
+
+```{r}
+ggplot(unified_yearly, aes(x = year, y = proportion_rules)) +
+  geom_point(colour = pt_col, size = 2) +
+  geom_smooth(method = "loess", span = loess_span,
+              se = FALSE, colour = smooth_col, linewidth = 1.2) +
+  scale_y_continuous(labels = scales::percent) +
+  labs(title = "Share of Formal Rules in FDA Output (2000-2024)",
+       x = "Year", y = "Rules as % of total") +
+  theme_minimal()
+
+```
+
+```{r}
+
+make_plot <- function(df, yvar, ylab, title) {
+  # compute OLS yearly trend
+  form <- reformulate("year", yvar)          # e.g. total_rules ~ year
+  slope <- coef(lm(form, df))[2]
+  slope_lbl <- paste0("Slope = ", round(slope, 3))
+  
+  ggplot(df, aes(x = year, y = .data[[yvar]])) +
+    geom_point(colour = pt_col, size = 2) +
+    geom_smooth(method = "loess", span = loess_span,
+                se = FALSE, colour = smooth_col, linewidth = 1.2) +
+    geom_smooth(method = "lm",   se = FALSE, colour = trend_col,
+                linetype = trend_lt, linewidth = 0.9) +
+    annotate("text", x = ann_x,
+             y = max(df[[yvar]]), hjust = 0,
+             label = slope_lbl, colour = trend_col) +
+    labs(title = title, x = "Year", y = ylab) +
+    theme_minimal()
+}
+
+plot_prop  <- make_plot(unified_yearly,
+                        yvar  = "proportion_rules",
+                        ylab  = "Rules as % of total",
+                        title = "Share of Formal Rules in FDA Output (2000-2024)"
+) +
+              scale_y_continuous(labels = scales::percent) +
+              labs(title = "Share of Formal Rules in FDA Output (2000-2024)")
+
+print(plot_prop)
+
+
+```
+
+```{r}
+make_plot <- function(df_yearly, df_monthly, yvar, ylab, title) {
+  # compute OLS yearly trend for the yearly data
+  form <- reformulate("year", yvar)          # e.g. total_rules ~ year
+  slope <- coef(lm(form, df_yearly))[2]
+  slope_lbl <- paste0("Slope = ", round(slope, 3))
+  
+  # Create the plot with both yearly trend and monthly data points
+  ggplot() +
+    # Add small dots for monthly data
+    geom_point(data = df_monthly, 
+               aes(x = as.numeric(year) + (month_num-1)/12, 
+                   y = .data[[yvar]]),
+               colour = "gray40", size = 0.8, alpha = 0.5) +
+    # Add the yearly smoothed trend
+    geom_smooth(data = df_yearly, 
+                aes(x = year, y = .data[[yvar]]),
+                method = "loess", span = loess_span,
+                se = FALSE, colour = smooth_col, linewidth = 1.2) +
+    # Add the linear trend line
+    geom_smooth(data = df_yearly,
+                aes(x = year, y = .data[[yvar]]),
+                method = "lm", se = FALSE, colour = trend_col,
+                linetype = trend_lt, linewidth = 0.9) +
+    # Add the slope annotation
+    annotate("text", x = ann_x,
+             y = max(df_yearly[[yvar]]), hjust = 0,
+             label = slope_lbl, colour = trend_col) +
+    # Add axis labels and title
+    labs(title = title, x = "Year", y = ylab) +
+    theme_minimal() +
+    theme(
+      axis.text.x = element_text(angle = 0, hjust = 0.5),
+      panel.grid.minor = element_blank()
+    )
+}
+
+# Ensure the unified_data has month_num calculated
+unified_data <- unified_data %>%
+  mutate(month_num = match(month, month.name))
+
+# Create the proportion_rules column in unified_data if it doesn't exist
+if (!"proportion_rules" %in% names(unified_data)) {
+  unified_data <- unified_data %>%
+    mutate(proportion_rules = ifelse(total_documents > 0, 
+                                    rules / total_documents, 0))
+}
+
+# Create the plot
+plot_prop <- make_plot(
+  df_yearly = unified_yearly,
+  df_monthly = unified_data,
+  yvar = "proportion_rules",
+  ylab = "Rules as % of total",
+  title = "Share of Formal Rules in FDA Output (2000-2024)"
+) +
+  scale_y_continuous(labels = scales::percent) +
+  scale_x_continuous(breaks = seq(2000, 2024, by = 2))
+
+print(plot_prop)
+```
+
+```{r}
+make_plot_monthly <- function(df_monthly, yvar, ylab, title) {
+  # Ensure df_monthly has proper date format for x-axis
+  df_monthly <- df_monthly %>%
+    mutate(date_decimal = as.numeric(year) + (month_num-1)/12)
+  
+  # Compute monthly trend
+  form <- reformulate("date_decimal", yvar)
+  model <- lm(form, df_monthly)
+  slope <- coef(model)[2]
+  slope_lbl <- paste0("Monthly slope = ", round(slope*12, 3))  # Annualized for easier interpretation
+  
+  ggplot(df_monthly, aes(x = date_decimal, y = .data[[yvar]])) +
+    geom_point(colour = pt_col, size = 1.5, alpha = 0.7) +  # Smaller points with some transparency
+    geom_smooth(method = "loess", span = loess_span,
+                se = FALSE, colour = smooth_col, linewidth = 1.2) +
+    geom_smooth(method = "lm", se = FALSE, colour = trend_col,
+                linetype = trend_lt, linewidth = 0.9) +
+    annotate("text", x = min(df_monthly$date_decimal) + 2,  # Adjust position
+             y = max(df_monthly[[yvar]]), hjust = 0,
+             label = slope_lbl, colour = trend_col) +
+    scale_x_continuous(breaks = seq(2000, 2024, by = 2)) +  # Set x-axis breaks every 2 years
+    labs(title = title, x = "Year", y = ylab) +
+    theme_minimal() +
+    theme(panel.grid.minor = element_blank())  # Remove minor grid lines for clarity
+}
+
+# Create the plot using monthly data
+plot_rules_monthly <- make_plot_monthly(
+  df_monthly = unified_data,  # Use the monthly dataset
+  yvar = "rules",             # Use the "rules" column for monthly counts
+  ylab = "Number of Rules",
+  title = "FDA Rules Published by Month (2000-2024)"
+)
+
+# Print the plot
+print(plot_rules_monthly)
+```
+
+```{r}
+make_plot_with_cutoff <- function(df_yearly, df_monthly, yvar, ylab, title, cutoff_date = "2024-06-30") {
+  # Convert cutoff_date to numeric year for plotting
+  cutoff_year_numeric <- as.numeric(format(as.Date(cutoff_date), "%Y")) + 
+                         as.numeric(format(as.Date(cutoff_date), "%m"))/12
+  
+  # Calculate slopes for before and after cutoff
+  df_monthly_before <- df_monthly %>% 
+    filter(date <= as.Date(cutoff_date))
+  
+  df_monthly_after <- df_monthly %>% 
+    filter(date > as.Date(cutoff_date))
+  
+  # Calculate slopes (if there's enough data on both sides)
+  if(nrow(df_monthly_before) > 0) {
+    before_model <- lm(reformulate("as.numeric(date)", yvar), df_monthly_before)
+    before_slope <- round(coef(before_model)[2] * 365, 3)  # Convert daily to yearly slope
+    before_slope_lbl <- paste0("Pre-cutoff slope = ", before_slope)
+  } else {
+    before_slope_lbl <- "Insufficient data before cutoff"
+  }
+  
+  if(nrow(df_monthly_after) > 0) {
+    after_model <- lm(reformulate("as.numeric(date)", yvar), df_monthly_after)
+    after_slope <- round(coef(after_model)[2] * 365, 3)  # Convert daily to yearly slope
+    after_slope_lbl <- paste0("Post-cutoff slope = ", after_slope)
+  } else {
+    after_slope_lbl <- "Insufficient data after cutoff"
+  }
+  
+  # Overall model for reference
+  overall_model <- lm(reformulate("year", yvar), df_yearly)
+  overall_slope <- round(coef(overall_model)[2], 3)
+  overall_slope_lbl <- paste0("Overall slope = ", overall_slope)
+  
+  # Create the plot
+  p <- ggplot() +
+    # Add small dots for monthly data
+    geom_point(data = df_monthly, 
+               aes(x = as.numeric(year) + (month_num-1)/12, 
+                   y = .data[[yvar]],
+                   color = date > as.Date(cutoff_date)),
+               size = 1, alpha = 0.7) +
+    
+    # Add vertical line at cutoff
+    geom_vline(xintercept = cutoff_year_numeric, 
+               linetype = "dashed", color = "red", linewidth = 0.8) +
+    
+    # Add separate trend lines before and after cutoff
+    geom_smooth(data = df_monthly_before, 
+                aes(x = as.numeric(year) + (month_num-1)/12, y = .data[[yvar]]),
+                method = "lm", se = FALSE, color = "blue", linewidth = 1.2) +
+    
+    geom_smooth(data = df_monthly_after,
+                aes(x = as.numeric(year) + (month_num-1)/12, y = .data[[yvar]]),
+                method = "lm", se = FALSE, color = "darkgreen", linewidth = 1.2) +
+    
+    # Add overall trend line (optional)
+    geom_smooth(data = df_yearly,
+                aes(x = year, y = .data[[yvar]]),
+                method = "lm", se = FALSE, colour = "gray30",
+                linetype = "dotted", linewidth = 0.9) +
+    
+    # Add annotations for slopes
+    annotate("text", x = 2002, y = max(df_monthly[[yvar]]) * 0.95, 
+             label = before_slope_lbl, hjust = 0, color = "blue", size = 3.2) +
+    
+    annotate("text", x = 2002, y = max(df_monthly[[yvar]]) * 0.9, 
+             label = after_slope_lbl, hjust = 0, color = "darkgreen", size = 3.2) +
+    
+    annotate("text", x = 2002, y = max(df_monthly[[yvar]]) * 0.85, 
+             label = overall_slope_lbl, hjust = 0, color = "gray30", size = 3.2) +
+    
+    # Add text to mark the cutoff
+    annotate("text", x = cutoff_year_numeric, y = min(df_monthly[[yvar]]), 
+             label = "June 30, 2024", angle = 90, hjust = 0, vjust = 1.5, 
+             color = "red", size = 3.2) +
+    
+    # Customize colors and labels
+    scale_color_manual(values = c("TRUE" = "darkgreen", "FALSE" = "blue"),
+                       labels = c("TRUE" = "After cutoff", "FALSE" = "Before cutoff"),
+                       name = "") +
+    
+    labs(title = title, x = "Year", y = ylab) +
+    theme_minimal() +
+    theme(
+      legend.position = "bottom",
+      axis.text.x = element_text(angle = 0, hjust = 0.5),
+      panel.grid.minor = element_blank()
+    )
+  
+  return(p)
+}
+
+# Make sure unified_data includes dates through December 2024
+# If you're using the data from the document, it should already include this
+
+# Create the plot with cutoff
+plot_prop_cutoff <- make_plot_with_cutoff(
+  df_yearly = unified_yearly,
+  df_monthly = unified_data,
+  yvar = "proportion_rules",
+  ylab = "Rules as % of total",
+  title = "Share of Formal Rules in FDA Output (2000-2024)\nwith June 30, 2024 Cutoff"
+) +
+  scale_y_continuous(labels = scales::percent) +
+  scale_x_continuous(breaks = seq(2000, 2024, by = 2))
+
+print(plot_prop_cutoff)
+```
+
+**Graph 2: Decrease in Total FDA Rules Published Each Year**\
+Graph 2 depicts a persistent decline in the number of formal FDA rules issued annually from 2000 to 2024. This consistent reduction in rule output suggests that the agency is steadily moving away from the traditional, formal rulemaking process. Contributing factors may include increasing administrative burdens, greater legal scrutiny, and a strategic pivot toward alternative regulatory mechanisms such as guidance documents. As the number of formal rules falls, [*the overall impact of traditional regulatory measures may be reduced, potentially affecting regulatory consistency and transparency*]{.underline}.
+
+```{r}
+#| label: Total Rules Published Each Year (2000-2024)
+#| echo: false
+
+## Plot 1 - Total Rules Published Each Year (2000-2024)
+ggplot(unified_yearly, aes(x = year, y = total_rules)) +
+  geom_line(color = "steelblue", size = 1) +
+  geom_point(color = "darkred", size = 2) +
+    geom_smooth(method = "lm", se = FALSE, color = "black", linetype = "dashed") +
+  annotate("text", x = min(unified_yearly$year) + 1, 
+           y = max(unified_yearly$total_rules), 
+           label = paste("Slope =", slope_rules), 
+           hjust = 0, color = "black") +
+
+  labs(
+    title = "Total Rules Published Each Year (2000-2024)",
+    x = "Year",
+    y = "Total Rules"
+  ) +
+  theme_minimal()
+```
+
+**Graph 3: Increase in the Number of FDA Guidance Documents Published Each Year**\
+Graph 3 illustrates a marked upward trend in the publication of FDA guidance documents from 2000 to 2024. As formal rulemaking has declined, the FDA appears to be increasingly relying on guidance documents to communicate policy and regulatory expectations. These documents offer a more flexible and less cumbersome alternative to formal rules, allowing the agency to respond more swiftly to emerging challenges. The graph highlights a strategic shift towards alternative regulatory instruments and suggests that the FDA is adapting its regulatory toolkit to better meet contemporary challenges.
+
+```{r}
+#| label: Total Guidance Documents Published Each Year (2000-2024)
+#| echo: false
+
+## Plot 2 - Total Guidance Documents Published Each Year (2000-2024)
+ggplot(unified_yearly, aes(x = year, y = total_guidance)) +
+  geom_line(color = "steelblue", size = 1) +
+  geom_point(color = "darkred", size = 2) +
+    geom_smooth(method = "lm", se = FALSE, color = "black", linetype = "dashed") +
+  annotate("text", x = min(unified_yearly$year) + 1, 
+           y = max(unified_yearly$total_guidance), 
+           label = paste("Slope =", slope_guidance), 
+           hjust = 0, color = "black") +
+  labs(
+    title = "Total Guidance Documents Published Each Year (2000-2024)",
+    x = "Year",
+    y = "Total Guidance Documents"
+  ) +
+  theme_minimal()
+```
+
+**Graph 4: Net Decline in Total FDA Regulatory Documents Published Each Year**\
+Graph 4 presents the combined total of FDA regulatory documents, including both formal rules and guidance documents, from 2000 to 2024. Despite the increase in guidance documents, the overall output has declined, indicating that the reduction in formal rulemaking has not been completely offset. This net decline reflects a more restrained overall approach to regulation by the FDA, possibly driven by heightened legal constraints and evolving administrative priorities. The downward trend in total regulatory output raises important questions about the effectiveness of policy implementation in a changing legal and political environment. It highlights the complex interplay between judicial pressures and agency strategy in the modern regulatory landscape.
+
+```{r}
+#| label: Total Documents Published Each Year (2000-2024)
+#| echo: false
+
+## Plot 3 - Total Documents Published Each Year (2000-2024)
+ggplot(unified_yearly, aes(x = year, y = total_documents)) +
+  geom_line(color = "steelblue", size = 1) +
+  geom_point(color = "darkred", size = 2) +
+    geom_smooth(method = "lm", se = FALSE, color = "black", linetype = "dashed") +
+  annotate("text", x = min(unified_yearly$year) + 1, 
+           y = max(unified_yearly$total_documents), 
+           label = paste("Slope =", slope_total), 
+           hjust = 0, color = "black") +
+  labs(
+    title = "Total Documents Published Each Year (2000-2024)",
+    x = "Year",
+    y = "Total Documents"
+  ) +
+  theme_minimal()
+```
+
+```{r}
+#| label: Add Fields to Unified DataSet
+#| echo: false
+
+#adds quarter, transition indicator, and numeric month and year entries to unified df 
+
+#Create seasonal tags
+unified_data <- unified_data |>
+  mutate(
+    quarter = quarter(date)
+  )
+
+# Define election years for clarity
+election_years <- c(2000, 2008, 2016, 2020, 2024)
+
+#adds presidential transition year indicator. Defined as Sep, Oct, Nov, Dec of election year and Jan of the month after. 
+unified_data <- unified_data %>%
+  mutate(
+    year_num = as.numeric(year),
+    month_num = match(month, month.name),
+    transition = if_else(
+      (year_num %in% election_years & month_num %in% 9:12) | 
+      ((year_num - 1) %in% election_years & month_num == 1),
+      1, 0
+      ),
+        # D indicator: set to 1 for years with a Democratic president (2000, 2009–2016, 2021–2024), 0 otherwise
+    D = if_else(year_num %in% c(2000, 2009:2016, 2021:2024), 1, 0)
+  )
+  
+
+```
+
+## Regression Specifications
+
+$$
+Y_i = \alpha + \tau D_i + \beta X_i + \gamma (D_i \times X_i) + \sum_{m=1}^{11} \delta_m M_{im} + \theta T_i + \epsilon_i
+$$
+
+Where:
+
+-   ($Y_i$): The number of rules, guidance documents, total documents, or the proportion of rules to total documents published in month $i$.
+
+-   ($\alpha$): Intercept term (baseline level of $Y$).
+
+-   ($D_i$): Treatment Indicator for month ($i$). $D_i$ = 1 if month $i$ is after June 2024 and 0 otherwise.
+
+-   ($X_i$): Running Variable representing the distance from the cutoff (June 2024) for month $i$). Measured in months: $X_i$ = Number of months since June 2024
+
+    -   ($X_i > 0$): Post-June 2024 (treatment group)
+
+    -   ($X_i < 0$): Pre-June 2024 (control group)
+
+-   ($\beta$): The Treatment Effect
+
+-   ($\gamma$): Coefficient for the interaction between treatment and distance, capturing the change in slope after the cutoff.
+
+-   ($M_{im}$): Monthly Dummy Variables for each month ( $m$, January to December), excluding one month to avoid multicollinearity (December is the reference category).
+
+-   ($\delta_m$): Coefficients for each monthly dummy variable, capturing the effect of being in month ($m$) relative to the reference month.
+
+-   ($T_i$): Presidential Transition Indicator for month ($i$). $T_i = 1$ if the month is either September--December of an election year or January of the year following an election year, and 0 otherwise.
+
+-   ($\theta$): Coefficient capturing the effect associated with presidential transition years.
+
+-   ($\epsilon_i$): Error Term capturing unobserved factors affecting ($Y_i$).
+
+```{r}
+#| label: Define RD Analyses
+#| echo: false
+
+# Define cutoff date (June 29, 2024)
+cutoff_date <- ymd("2024-06-29")
+
+# Create unified RD dataset from unified_data
+rd_data_all <- unified_data %>%
+  mutate(
+    publication_date = date,  # 'date' comes from unified_data
+    # Calculate distance in full months from the cutoff:
+    distance = (year(publication_date) - year(cutoff_date)) * 12 +
+               (month(publication_date) - month(cutoff_date)),
+    # Create treatment indicator: 1 if publication_date is after cutoff, 0 otherwise
+    treatment = ifelse(publication_date > cutoff_date, 1, 0),
+    # Convert 'month' to an ordered factor
+    month = factor(month, levels = month.name, ordered = TRUE)
+  )
+
+# -- Run RD analyses on the entire dataset --
+rd_model_rules_all <- lm(rules ~ treatment * distance + month + transition + D, data = rd_data_all)
+rd_model_guidance_all <- lm(guidance ~ treatment * distance + month + transition + D, data = rd_data_all)
+rd_model_total_all <- lm(total_documents ~ treatment * distance + month + transition + D, data = rd_data_all)
+rd_model_prop_all <- lm(proportion_rules ~ treatment * distance + month + transition + D, data = rd_data_all)
+
+# -- Create a 6-month band around the cutoff for a localized RD analysis --
+rd_data_band <- rd_data_all %>%
+  filter(publication_date >= cutoff_date %m-% months(6) &
+         publication_date <= cutoff_date %m+% months(6))
+
+rd_model_rules_band <- lm(rules ~ treatment * distance, data = rd_data_band)
+rd_model_guidance_band <- lm(guidance ~ treatment * distance, data = rd_data_band)
+rd_model_total_band <- lm(total_documents ~ treatment * distance, data = rd_data_band)
+rd_model_prop_band <- lm(proportion_rules ~ treatment * distance, data = rd_data_band)
+```
+
+```{r}
+#| label: Define RD Graphs
+#| echo: false
+
+# Function to create an RD graph with left/right linear fits and slope annotations
+plot_rd <- function(data, outcome, y_label, title) {
+  # Split the data into left (pre-cutoff) and right (post-cutoff) samples
+  left_data <- data %>% filter(distance <= 0)
+  right_data <- data %>% filter(distance > 0)
+  
+  # Fit separate linear models on the left and right side
+  left_fit <- lm(as.formula(paste(outcome, "~ distance")), data = left_data)
+  right_fit <- lm(as.formula(paste(outcome, "~ distance")), data = right_data)
+  
+  left_slope <- coef(left_fit)[2]
+  right_slope <- coef(right_fit)[2]
+  
+  # Create the plot
+  ggplot(data, aes(x = distance, y = .data[[outcome]])) +
+    geom_point() +
+    geom_vline(xintercept = 0, linetype = "dashed", color = "red") +
+    geom_smooth(data = left_data, method = "lm", se = FALSE, color = "blue") +
+    geom_smooth(data = right_data, method = "lm", se = FALSE, color = "darkgreen") +
+    annotate("text", 
+             x = min(data$distance, na.rm = TRUE) + 0.5, 
+             y = max(data[[outcome]], na.rm = TRUE), 
+             label = paste("Left slope =", round(left_slope, 3)),
+             hjust = 0, color = "blue") +
+    annotate("text", 
+             x = max(data$distance, na.rm = TRUE) - 0.5, 
+             y = max(data[[outcome]], na.rm = TRUE), 
+             label = paste("Right slope =", round(right_slope, 3)),
+             hjust = 1, color = "darkgreen") +
+    labs(title = title,
+         x = "Distance from Cutoff (months)",
+         y = y_label) +
+    theme_minimal()
+}
+
+# Reminder: rd_data_band has been created by filtering the unified RD dataset to 6 months before and after the cutoff.
+
+# Create graphs for each outcome:
+plot_rules <- plot_rd(rd_data_band, "rules", "Number of Rules", "RD Analysis for FDA Rules (6-Month Band)")
+plot_guidance <- plot_rd(rd_data_band, "guidance", "Number of Guidance Documents", "RD Analysis for FDA Guidance Documents (6-Month Band)")
+plot_total <- plot_rd(rd_data_band, "total_documents", "Total Documents", "RD Analysis for Total FDA Documents (6-Month Band)")
+plot_prop <- plot_rd(rd_data_band, "proportion_rules", "Proportion of FDA Rules", "RD Analysis for Proportion of FDA Rules (6-Month Band)")
+```
+
+## Interrupted Time Series Results
+
+Notes:
+
+Look at another dataset or report that verifies report
+
+-   This is extenal inconsistency, also look at internal inconsistency.
+
+-   Change to monthly and then smooth the series
+
+If the monthly process were perfectly linear and seasonality were flat, you **would** expect β_year ≈ 12 × β_month.
+
+```{r}
+#| echo: false
+
+library(dplyr)
+library(stargazer)
+
+# 1. Define the four model variants for each outcome ------------------------
+
+#-- Rules -------------------------------------------------------------------
+rd_rules_dist_all <- lm(rules ~ distance, data = rd_data_all)
+rd_rules_full_all <- lm(rules ~ treatment * distance + month + transition + D, data = rd_data_all)
+rd_rules_dist_pre <- lm(rules ~ distance, data = filter(rd_data_all, treatment == 0))
+rd_rules_full_pre <- lm(rules ~ distance + month + transition + D, data = filter(rd_data_all, treatment == 0))
+
+#-- Guidance ---------------------------------------------------------------
+rd_guidance_dist_all <- lm(guidance ~ distance, data = rd_data_all)
+rd_guidance_full_all <- lm(guidance ~ treatment * distance + month + transition + D, data = rd_data_all)
+rd_guidance_dist_pre <- lm(guidance ~ distance, data = filter(rd_data_all, treatment == 0))
+rd_guidance_full_pre <- lm(guidance ~ distance + month + transition + D, data = filter(rd_data_all, treatment == 0))
+
+#-- Total Documents --------------------------------------------------------
+rd_total_dist_all <- lm(total_documents ~ distance, data = rd_data_all)
+rd_total_full_all <- lm(total_documents ~ treatment * distance + month + transition + D, data = rd_data_all)
+rd_total_dist_pre <- lm(total_documents ~ distance, data = filter(rd_data_all, treatment == 0))
+rd_total_full_pre <- lm(total_documents ~ distance + month + transition + D, data = filter(rd_data_all, treatment == 0))
+
+#-- Proportion -------------------------------------------------------------
+rd_prop_dist_all <- lm(proportion_rules ~ distance, data = rd_data_all)
+rd_prop_full_all <- lm(proportion_rules ~ treatment * distance + month + transition + D, data = rd_data_all)
+rd_prop_dist_pre <- lm(proportion_rules ~ distance, data = filter(rd_data_all, treatment == 0))
+rd_prop_full_pre <- lm(proportion_rules ~ distance + month + transition + D, data = filter(rd_data_all, treatment == 0))
+
+
+# 2. Render tables ----------------------------------------------------------
+
+# Rules table
+stargazer(rd_rules_dist_all, rd_rules_full_all, rd_rules_dist_pre, rd_rules_full_pre,
+          title = "RD Models for FDA Rules",
+          column.labels = c("Distance-only (all)", "Full (all)", "Distance-only (pre)", "Full (pre)"),
+          dep.var.labels = "Rules",
+          type = "text",
+          omit.stat = c("f", "ser"),
+          digits = 3,
+          no.space = TRUE)
+
+# Guidance table
+stargazer(rd_guidance_dist_all, rd_guidance_full_all, rd_guidance_dist_pre, rd_guidance_full_pre,
+          title = "RD Models for FDA Guidance Documents",
+          column.labels = c("Distance-only (all)", "Full (all)", "Distance-only (pre)", "Full (pre)"),
+          dep.var.labels = "Guidance",
+          type = "text",
+          omit.stat = c("f", "ser"),
+          digits = 3,
+          no.space = TRUE)
+
+# Total Documents table
+stargazer(rd_total_dist_all, rd_total_full_all, rd_total_dist_pre, rd_total_full_pre,
+          title = "RD Models for Total Documents",
+          column.labels = c("Distance-only (all)", "Full (all)", "Distance-only (pre)", "Full (pre)"),
+          dep.var.labels = "Total Documents",
+          type = "text",
+          omit.stat = c("f", "ser"),
+          digits = 3,
+          no.space = TRUE)
+
+# Proportion table
+stargazer(rd_prop_dist_all, rd_prop_full_all, rd_prop_dist_pre, rd_prop_full_pre,
+          title = "RD Models for Proportion of FDA Rules",
+          column.labels = c("Distance-only (all)", "Full (all)", "Distance-only (pre)", "Full (pre)"),
+          dep.var.labels = "Proportion",
+          type = "text",
+          omit.stat = c("f", "ser"),
+          digits = 3,
+          no.space = TRUE)
+
+```
+
+```{r}
+#| echo: false
+
+# Install and load stargazer if you haven't already
+#install.packages("stargazer")
+library(stargazer)
+
+
+# Assuming you have four ITS models defined as follows:
+# its_model_rules: ITS model for rules
+# its_model_guidance: ITS model for guidance documents
+# its_model_total: ITS model for total documents
+# its_model_prop: ITS model for the proportion of rules to total documents
+
+stargazer(rd_model_rules_all, 
+          rd_model_guidance_all, 
+          rd_model_total_all, 
+          rd_model_prop_all,
+          type = "text",                             # Use "html" or "latex" as desired for your output format
+          title = "Interrupted Time Series Analysis Results",
+          column.labels = c("Rules", "Guidance", "Total", "Proportion"),
+          dep.var.labels.include = FALSE,
+          omit.stat = c("f", "ser"),                 # Omit F-statistics and standard error of regression if desired
+          digits = 3,
+          omit = c("month", "Constant"),
+          #star.cutoffs = c(0.1, 0.05, 0.01),         # p-value thresholds for stars: * p<0.1, ** p<0.05, *** p<0.01
+          #star.char = c("*", "**", "***"),
+          notes = "Standard errors are reported in parentheses below the estimates.",
+          no.space = TRUE)
+
+```
+
+The results show clear and contrasting trends across the four dependent variables. In the model for formal FDA rules, the distance variable is significantly negative (--0.033, p\<0.01), indicating that for each additional month from the cutoff, the average number of published rules declines. In contrast, the guidance documents model features a significantly positive distance effect (0.020, p\<0.01), suggesting that as time from the cutoff increases, the issuance of guidance documents rises. For the total number of documents (the sum of rules and guidance), the distance effect remains negative but is smaller in magnitude (--0.013, p\<0.05). The proportion model further confirms that the share of formal rules falls over time, with a significant decrease of 0.002 (p\<0.01) per month. The constant estimates in all models are highly significant, and the models for rules and proportion explain a moderate share of the variance (adjusted R² of 0.293 and 0.373, respectively), while those for guidance and total documents show more modest explanatory power.
+
+The analysis also controls for broader contextual factors. The presidential transition indicator is not statistically significant in any specification, suggesting that the designated transition months do not, by themselves, account for the observed trends. However, the Democratic party indicator (D) is significant in the proportion model (0.047, p\<0.1), implying that during years under a Democratic president, the proportion of formal rules is modestly higher. Additionally, the interaction term between treatment and distance is consistently negative, though not statistically significant across the models, hinting at some attenuation of the distance effect in the treatment period. Overall, the findings point to a clear shift away from formal rulemaking over time, with an increase in guidance documents that, however, does not fully offset the decline in total regulatory output.
+
+### Appendix - RD of Proportion of rules
+
+We ran an RD regression but saw no significant short-term effects of *Loper Bright* and *Ohio v. EPA* on rulemaking output.
+
+```{r}
+#| echo: false
+
+print(plot_prop)
+```
+
+```{r}
+#reality check 
+
+# ‘Year’ model (annual totals)
+beta_year <- coef(lm(total_rules ~ year, data = unified_yearly))[2]
+beta_year
+# [1] -4.50  (≈ rules per *calendar* year)
+
+# Make an “average-monthly” outcome for the same regression
+unified_yearly <- unified_yearly %>%
+  mutate(avg_monthly_rules = total_rules / 12)
+coef(lm(avg_monthly_rules ~ year, unified_yearly))[2]
+# ≈ -0.375   (-0.375 ≈ -4.50 / 12)
+
+# Now create a pure month-index that rises 1,2,3,… from Jan-2000 to Dec-2024
+unified_data  <- unified_data %>%
+  mutate(month_index = 1:n())
+
+coef(lm(rules ~ month_index, unified_data))[2]
+# ≈ -0.375   (matches the annualised decline)
+
+```
+
+```{r}
+
+```

@@ -78,10 +78,10 @@ monthly_counts <- monthly_counts %>%
 
 monthly_counts <- monthly_counts %>% filter(month < as.Date("2025-01-01"))
 
-model <- feols(n_rules ~ post * distance | agency_names, data = monthly_counts)
+model <- feols(n_rules ~ post * distance | agency_names, data = monthly_counts)r
 summary(model)
 
-model_lm <- lm(n_rules ~ post * distance + factor(agency_names), data = monthly_counts)
+model_lm <- lm(n_rules ~ post * distance + factor(agency_names)  * distance * post, data = monthly_counts)
 summary(model_lm)
 
 
