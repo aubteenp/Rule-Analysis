@@ -195,47 +195,47 @@ ggplot(unified_yearly, aes(x = year, y = proportion_rules)) +
 ```
 
 ```{r}
-ggplot(unified_yearly, aes(x = year, y = proportion_rules)) +
-  geom_point(colour = pt_col, size = 2) +
-  geom_smooth(method = "loess", span = loess_span,
-              se = FALSE, colour = smooth_col, linewidth = 1.2) +
-  scale_y_continuous(labels = scales::percent) +
-  labs(title = "Share of Formal Rules in FDA Output (2000-2024)",
-       x = "Year", y = "Rules as % of total") +
-  theme_minimal()
-
+#| label: Smooth w dots
+# ggplot(unified_yearly, aes(x = year, y = proportion_rules)) +
+#   geom_point(colour = pt_col, size = 2) +
+#   geom_smooth(method = "loess", span = loess_span,
+#               se = FALSE, colour = smooth_col, linewidth = 1.2) +
+#   scale_y_continuous(labels = scales::percent) +
+#   labs(title = "Share of Formal Rules in FDA Output (2000-2024)",
+#        x = "Year", y = "Rules as % of total") +
+#   theme_minimal()
 ```
 
 ```{r}
-
-make_plot <- function(df, yvar, ylab, title) {
-  # compute OLS yearly trend
-  form <- reformulate("year", yvar)          # e.g. total_rules ~ year
-  slope <- coef(lm(form, df))[2]
-  slope_lbl <- paste0("Slope = ", round(slope, 3))
-  
-  ggplot(df, aes(x = year, y = .data[[yvar]])) +
-    geom_point(colour = pt_col, size = 2) +
-    geom_smooth(method = "loess", span = loess_span,
-                se = FALSE, colour = smooth_col, linewidth = 1.2) +
-    geom_smooth(method = "lm",   se = FALSE, colour = trend_col,
-                linetype = trend_lt, linewidth = 0.9) +
-    annotate("text", x = ann_x,
-             y = max(df[[yvar]]), hjust = 0,
-             label = slope_lbl, colour = trend_col) +
-    labs(title = title, x = "Year", y = ylab) +
-    theme_minimal()
-}
-
-plot_prop  <- make_plot(unified_yearly,
-                        yvar  = "proportion_rules",
-                        ylab  = "Rules as % of total",
-                        title = "Share of Formal Rules in FDA Output (2000-2024)"
-) +
-              scale_y_continuous(labels = scales::percent) +
-              labs(title = "Share of Formal Rules in FDA Output (2000-2024)")
-
-print(plot_prop)
+#| label: Smooth w dots AND trend line
+# make_plot <- function(df, yvar, ylab, title) {
+#   # compute OLS yearly trend
+#   form <- reformulate("year", yvar)          # e.g. total_rules ~ year
+#   slope <- coef(lm(form, df))[2]
+#   slope_lbl <- paste0("Slope = ", round(slope, 3))
+#   
+#   ggplot(df, aes(x = year, y = .data[[yvar]])) +
+#     geom_point(colour = pt_col, size = 2) +
+#     geom_smooth(method = "loess", span = loess_span,
+#                 se = FALSE, colour = smooth_col, linewidth = 1.2) +
+#     geom_smooth(method = "lm",   se = FALSE, colour = trend_col,
+#                 linetype = trend_lt, linewidth = 0.9) +
+#     annotate("text", x = ann_x,
+#              y = max(df[[yvar]]), hjust = 0,
+#              label = slope_lbl, colour = trend_col) +
+#     labs(title = title, x = "Year", y = ylab) +
+#     theme_minimal()
+# }
+# 
+# plot_prop  <- make_plot(unified_yearly,
+#                         yvar  = "proportion_rules",
+#                         ylab  = "Rules as % of total",
+#                         title = "Share of Formal Rules in FDA Output (2000-2024)"
+# ) +
+#               scale_y_continuous(labels = scales::percent) +
+#               labs(title = "Share of Formal Rules in FDA Output (2000-2024)")
+# 
+# print(plot_prop)
 
 
 ```
@@ -253,7 +253,7 @@ make_plot <- function(df_yearly, df_monthly, yvar, ylab, title) {
     geom_point(data = df_monthly, 
                aes(x = as.numeric(year) + (month_num-1)/12, 
                    y = .data[[yvar]]),
-               colour = "gray40", size = 0.8, alpha = 0.5) +
+               color = "gray40", size = 0.8, alpha = 0.5) +
     # Add the yearly smoothed trend
     geom_smooth(data = df_yearly, 
                 aes(x = year, y = .data[[yvar]]),
@@ -303,153 +303,114 @@ print(plot_prop)
 ```
 
 ```{r}
-make_plot_monthly <- function(df_monthly, yvar, ylab, title) {
-  # Ensure df_monthly has proper date format for x-axis
-  df_monthly <- df_monthly %>%
-    mutate(date_decimal = as.numeric(year) + (month_num-1)/12)
-  
-  # Compute monthly trend
-  form <- reformulate("date_decimal", yvar)
-  model <- lm(form, df_monthly)
-  slope <- coef(model)[2]
-  slope_lbl <- paste0("Monthly slope = ", round(slope*12, 3))  # Annualized for easier interpretation
-  
-  ggplot(df_monthly, aes(x = date_decimal, y = .data[[yvar]])) +
-    geom_point(colour = pt_col, size = 1.5, alpha = 0.7) +  # Smaller points with some transparency
-    geom_smooth(method = "loess", span = loess_span,
-                se = FALSE, colour = smooth_col, linewidth = 1.2) +
-    geom_smooth(method = "lm", se = FALSE, colour = trend_col,
-                linetype = trend_lt, linewidth = 0.9) +
-    annotate("text", x = min(df_monthly$date_decimal) + 2,  # Adjust position
-             y = max(df_monthly[[yvar]]), hjust = 0,
-             label = slope_lbl, colour = trend_col) +
-    scale_x_continuous(breaks = seq(2000, 2024, by = 2)) +  # Set x-axis breaks every 2 years
-    labs(title = title, x = "Year", y = ylab) +
-    theme_minimal() +
-    theme(panel.grid.minor = element_blank())  # Remove minor grid lines for clarity
-}
-
-# Create the plot using monthly data
-plot_rules_monthly <- make_plot_monthly(
-  df_monthly = unified_data,  # Use the monthly dataset
-  yvar = "rules",             # Use the "rules" column for monthly counts
-  ylab = "Number of Rules",
-  title = "FDA Rules Published by Month (2000-2024)"
-)
-
-# Print the plot
-print(plot_rules_monthly)
-```
-
-```{r}
-make_plot_with_cutoff <- function(df_yearly, df_monthly, yvar, ylab, title, cutoff_date = "2024-06-30") {
-  # Convert cutoff_date to numeric year for plotting
-  cutoff_year_numeric <- as.numeric(format(as.Date(cutoff_date), "%Y")) + 
-                         as.numeric(format(as.Date(cutoff_date), "%m"))/12
-  
-  # Calculate slopes for before and after cutoff
-  df_monthly_before <- df_monthly %>% 
-    filter(date <= as.Date(cutoff_date))
-  
-  df_monthly_after <- df_monthly %>% 
-    filter(date > as.Date(cutoff_date))
-  
-  # Calculate slopes (if there's enough data on both sides)
-  if(nrow(df_monthly_before) > 0) {
-    before_model <- lm(reformulate("as.numeric(date)", yvar), df_monthly_before)
-    before_slope <- round(coef(before_model)[2] * 365, 3)  # Convert daily to yearly slope
-    before_slope_lbl <- paste0("Pre-cutoff slope = ", before_slope)
-  } else {
-    before_slope_lbl <- "Insufficient data before cutoff"
-  }
-  
-  if(nrow(df_monthly_after) > 0) {
-    after_model <- lm(reformulate("as.numeric(date)", yvar), df_monthly_after)
-    after_slope <- round(coef(after_model)[2] * 365, 3)  # Convert daily to yearly slope
-    after_slope_lbl <- paste0("Post-cutoff slope = ", after_slope)
-  } else {
-    after_slope_lbl <- "Insufficient data after cutoff"
-  }
-  
-  # Overall model for reference
-  overall_model <- lm(reformulate("year", yvar), df_yearly)
-  overall_slope <- round(coef(overall_model)[2], 3)
-  overall_slope_lbl <- paste0("Overall slope = ", overall_slope)
-  
-  # Create the plot
-  p <- ggplot() +
-    # Add small dots for monthly data
-    geom_point(data = df_monthly, 
-               aes(x = as.numeric(year) + (month_num-1)/12, 
-                   y = .data[[yvar]],
-                   color = date > as.Date(cutoff_date)),
-               size = 1, alpha = 0.7) +
-    
-    # Add vertical line at cutoff
-    geom_vline(xintercept = cutoff_year_numeric, 
-               linetype = "dashed", color = "red", linewidth = 0.8) +
-    
-    # Add separate trend lines before and after cutoff
-    geom_smooth(data = df_monthly_before, 
-                aes(x = as.numeric(year) + (month_num-1)/12, y = .data[[yvar]]),
-                method = "lm", se = FALSE, color = "blue", linewidth = 1.2) +
-    
-    geom_smooth(data = df_monthly_after,
-                aes(x = as.numeric(year) + (month_num-1)/12, y = .data[[yvar]]),
-                method = "lm", se = FALSE, color = "darkgreen", linewidth = 1.2) +
-    
-    # Add overall trend line (optional)
-    geom_smooth(data = df_yearly,
-                aes(x = year, y = .data[[yvar]]),
-                method = "lm", se = FALSE, colour = "gray30",
-                linetype = "dotted", linewidth = 0.9) +
-    
-    # Add annotations for slopes
-    annotate("text", x = 2002, y = max(df_monthly[[yvar]]) * 0.95, 
-             label = before_slope_lbl, hjust = 0, color = "blue", size = 3.2) +
-    
-    annotate("text", x = 2002, y = max(df_monthly[[yvar]]) * 0.9, 
-             label = after_slope_lbl, hjust = 0, color = "darkgreen", size = 3.2) +
-    
-    annotate("text", x = 2002, y = max(df_monthly[[yvar]]) * 0.85, 
-             label = overall_slope_lbl, hjust = 0, color = "gray30", size = 3.2) +
-    
-    # Add text to mark the cutoff
-    annotate("text", x = cutoff_year_numeric, y = min(df_monthly[[yvar]]), 
-             label = "June 30, 2024", angle = 90, hjust = 0, vjust = 1.5, 
-             color = "red", size = 3.2) +
-    
-    # Customize colors and labels
-    scale_color_manual(values = c("TRUE" = "darkgreen", "FALSE" = "blue"),
-                       labels = c("TRUE" = "After cutoff", "FALSE" = "Before cutoff"),
-                       name = "") +
-    
-    labs(title = title, x = "Year", y = ylab) +
-    theme_minimal() +
-    theme(
-      legend.position = "bottom",
-      axis.text.x = element_text(angle = 0, hjust = 0.5),
-      panel.grid.minor = element_blank()
-    )
-  
-  return(p)
-}
-
-# Make sure unified_data includes dates through December 2024
-# If you're using the data from the document, it should already include this
-
-# Create the plot with cutoff
-plot_prop_cutoff <- make_plot_with_cutoff(
-  df_yearly = unified_yearly,
-  df_monthly = unified_data,
-  yvar = "proportion_rules",
-  ylab = "Rules as % of total",
-  title = "Share of Formal Rules in FDA Output (2000-2024)\nwith June 30, 2024 Cutoff"
-) +
-  scale_y_continuous(labels = scales::percent) +
-  scale_x_continuous(breaks = seq(2000, 2024, by = 2))
-
-print(plot_prop_cutoff)
+# make_plot_with_cutoff <- function(df_yearly, df_monthly, yvar, ylab, title, cutoff_date = "2024-06-30") {
+#   # Convert cutoff_date to numeric year for plotting
+#   cutoff_year_numeric <- as.numeric(format(as.Date(cutoff_date), "%Y")) + 
+#                          as.numeric(format(as.Date(cutoff_date), "%m"))/12
+#   
+#   # Calculate slopes for before and after cutoff
+#   df_monthly_before <- df_monthly %>% 
+#     filter(date <= as.Date(cutoff_date))
+#   
+#   df_monthly_after <- df_monthly %>% 
+#     filter(date > as.Date(cutoff_date))
+#   
+#   # Calculate slopes (if there's enough data on both sides)
+#   if(nrow(df_monthly_before) > 0) {
+#     before_model <- lm(reformulate("as.numeric(date)", yvar), df_monthly_before)
+#     before_slope <- round(coef(before_model)[2] * 365, 3)  # Convert daily to yearly slope
+#     before_slope_lbl <- paste0("Pre-cutoff slope = ", before_slope)
+#   } else {
+#     before_slope_lbl <- "Insufficient data before cutoff"
+#   }
+#   
+#   if(nrow(df_monthly_after) > 0) {
+#     after_model <- lm(reformulate("as.numeric(date)", yvar), df_monthly_after)
+#     after_slope <- round(coef(after_model)[2] * 365, 3)  # Convert daily to yearly slope
+#     after_slope_lbl <- paste0("Post-cutoff slope = ", after_slope)
+#   } else {
+#     after_slope_lbl <- "Insufficient data after cutoff"
+#   }
+#   
+#   # Overall model for reference
+#   overall_model <- lm(reformulate("year", yvar), df_yearly)
+#   overall_slope <- round(coef(overall_model)[2], 3)
+#   overall_slope_lbl <- paste0("Overall slope = ", overall_slope)
+#   
+#   # Create the plot
+#   p <- ggplot() +
+#     # Add small dots for monthly data
+#     geom_point(data = df_monthly, 
+#                aes(x = as.numeric(year) + (month_num-1)/12, 
+#                    y = .data[[yvar]],
+#                    color = date > as.Date(cutoff_date)),
+#                size = 1, alpha = 0.7) +
+#     
+#     # Add vertical line at cutoff
+#     geom_vline(xintercept = cutoff_year_numeric, 
+#                linetype = "dashed", color = "red", linewidth = 0.8) +
+#     
+#     # Add separate trend lines before and after cutoff
+#     geom_smooth(data = df_monthly_before, 
+#                 aes(x = as.numeric(year) + (month_num-1)/12, y = .data[[yvar]]),
+#                 method = "lm", se = FALSE, color = "blue", linewidth = 1.2) +
+#     
+#     geom_smooth(data = df_monthly_after,
+#                 aes(x = as.numeric(year) + (month_num-1)/12, y = .data[[yvar]]),
+#                 method = "lm", se = FALSE, color = "darkgreen", linewidth = 1.2) +
+#     
+#     # Add overall trend line (optional)
+#     geom_smooth(data = df_yearly,
+#                 aes(x = year, y = .data[[yvar]]),
+#                 method = "lm", se = FALSE, colour = "gray30",
+#                 linetype = "dotted", linewidth = 0.9) +
+#     
+#     # Add annotations for slopes
+#     annotate("text", x = 2002, y = max(df_monthly[[yvar]]) * 0.95, 
+#              label = before_slope_lbl, hjust = 0, color = "blue", size = 3.2) +
+#     
+#     annotate("text", x = 2002, y = max(df_monthly[[yvar]]) * 0.9, 
+#              label = after_slope_lbl, hjust = 0, color = "darkgreen", size = 3.2) +
+#     
+#     annotate("text", x = 2002, y = max(df_monthly[[yvar]]) * 0.85, 
+#              label = overall_slope_lbl, hjust = 0, color = "gray30", size = 3.2) +
+#     
+#     # Add text to mark the cutoff
+#     annotate("text", x = cutoff_year_numeric, y = min(df_monthly[[yvar]]), 
+#              label = "June 30, 2024", angle = 90, hjust = 0, vjust = 1.5, 
+#              color = "red", size = 3.2) +
+#     
+#     # Customize colors and labels
+#     scale_color_manual(values = c("TRUE" = "darkgreen", "FALSE" = "blue"),
+#                        labels = c("TRUE" = "After cutoff", "FALSE" = "Before cutoff"),
+#                        name = "") +
+#     
+#     labs(title = title, x = "Year", y = ylab) +
+#     theme_minimal() +
+#     theme(
+#       legend.position = "bottom",
+#       axis.text.x = element_text(angle = 0, hjust = 0.5),
+#       panel.grid.minor = element_blank()
+#     )
+#   
+#   return(p)
+# }
+# 
+# # Make sure unified_data includes dates through December 2024
+# # If you're using the data from the document, it should already include this
+# 
+# # Create the plot with cutoff
+# plot_prop_cutoff <- make_plot_with_cutoff(
+#   df_yearly = unified_yearly,
+#   df_monthly = unified_data,
+#   yvar = "proportion_rules",
+#   ylab = "Rules as % of total",
+#   title = "Share of Formal Rules in FDA Output (2000-2024)\nwith June 30, 2024 Cutoff"
+# ) +
+#   scale_y_continuous(labels = scales::percent) +
+#   scale_x_continuous(breaks = seq(2000, 2024, by = 2))
+# 
+# print(plot_prop_cutoff)
 ```
 
 **Graph 2: Decrease in Total FDA Rules Published Each Year**\
@@ -477,6 +438,47 @@ ggplot(unified_yearly, aes(x = year, y = total_rules)) +
   theme_minimal()
 ```
 
+```{r}
+#| label: Rules Graph w 300 dots
+
+make_plot_monthly <- function(df_monthly, yvar, ylab, title) {
+  # Ensure df_monthly has proper date format for x-axis
+  df_monthly <- df_monthly %>%
+    mutate(date_decimal = as.numeric(year) + (month_num-1)/12)
+  
+  # Compute monthly trend
+  form <- reformulate("date_decimal", yvar)
+  model <- lm(form, df_monthly)
+  slope <- coef(model)[2]
+  slope_lbl <- paste0("Annual slope = ", round(slope*12, 3))  # Annualized for easier interpretation
+  
+  ggplot(df_monthly, aes(x = date_decimal, y = .data[[yvar]])) +
+    geom_point(colour = "gray40", size = 0.8, alpha = 0.5) +  # Smaller points with some transparency
+    geom_smooth(method = "loess", span = loess_span,
+                se = FALSE, colour = smooth_col, linewidth = 1.2) +
+    geom_smooth(method = "lm", se = FALSE, colour = trend_col,
+                linetype = trend_lt, linewidth = 0.9) +
+    annotate("text", x = min(df_monthly$date_decimal) + 8,  # Adjust position of labels
+             y = max(df_monthly[[yvar]]), hjust = 0,
+             label = slope_lbl, colour = trend_col) +
+    scale_x_continuous(breaks = seq(2000, 2024, by = 2)) +  # Set x-axis breaks every 2 years
+    labs(title = title, x = "Year", y = ylab) +
+    theme_minimal() +
+    theme(panel.grid.minor = element_blank())  # Remove minor grid lines for clarity
+}
+
+# Create the plot using monthly data
+plot_rules_monthly <- make_plot_monthly(
+  df_monthly = unified_data,  # Use the monthly dataset
+  yvar = "rules",             # Use the "rules" column for monthly counts
+  ylab = "Number of Rules",
+  title = "FDA Rules Published by Month (2000-2024)"
+)
+
+# Print the plot
+print(plot_rules_monthly)
+```
+
 **Graph 3: Increase in the Number of FDA Guidance Documents Published Each Year**\
 Graph 3 illustrates a marked upward trend in the publication of FDA guidance documents from 2000 to 2024. As formal rulemaking has declined, the FDA appears to be increasingly relying on guidance documents to communicate policy and regulatory expectations. These documents offer a more flexible and less cumbersome alternative to formal rules, allowing the agency to respond more swiftly to emerging challenges. The graph highlights a strategic shift towards alternative regulatory instruments and suggests that the FDA is adapting its regulatory toolkit to better meet contemporary challenges.
 
@@ -501,6 +503,49 @@ ggplot(unified_yearly, aes(x = year, y = total_guidance)) +
   theme_minimal()
 ```
 
+```{r}
+#| label: Monthly data - Total Guidance Documents Published Each Year (2000-2024)
+
+# Ensure 'month_num' exists in unified_data (if not already added, though previous block might have)
+if (!"month_num" %in% names(unified_data)) {
+  unified_data <- unified_data %>%
+    mutate(month_num = match(month, month.name)) # Assumes 'month' is like "January"
+}
+
+# Define y-variable from unified_data (for monthly guidance counts)
+yvar_guidance <- "guidance" # This column should exist in your 'unified_data'
+
+# Define y-axis label
+ylab_guidance <- "Number of Guidance Documents"
+
+# Define base for the plot title
+base_title_guidance <- "FDA Guidance Documents Published by Month"
+
+# Dynamically create the full title
+# Option 1: Fixed start year for the title (e.g., 2000)
+title_start_year_g <- 2000
+# Option 2: Dynamic start year for the title (uncomment if preferred)
+# title_start_year_g <- min(unified_data$year, na.rm = TRUE)
+
+title_end_year_g <- max(unified_data$year, na.rm = TRUE)
+
+dynamic_title_guidance <- paste0(base_title_guidance, " (", title_start_year_g, "-", title_end_year_g, ")")
+if (title_start_year_g == title_end_year_g) {
+  dynamic_title_guidance <- paste0(base_title_guidance, " (", title_start_year_g, ")")
+}
+
+# Create the plot for guidance documents
+plot_guidance_monthly <- make_plot_monthly(
+  df_monthly = unified_data,
+  yvar = yvar_guidance,
+  ylab = ylab_guidance,
+  title = dynamic_title_guidance
+)
+
+# Print the plot
+print(plot_guidance_monthly)
+```
+
 **Graph 4: Net Decline in Total FDA Regulatory Documents Published Each Year**\
 Graph 4 presents the combined total of FDA regulatory documents, including both formal rules and guidance documents, from 2000 to 2024. Despite the increase in guidance documents, the overall output has declined, indicating that the reduction in formal rulemaking has not been completely offset. This net decline reflects a more restrained overall approach to regulation by the FDA, possibly driven by heightened legal constraints and evolving administrative priorities. The downward trend in total regulatory output raises important questions about the effectiveness of policy implementation in a changing legal and political environment. It highlights the complex interplay between judicial pressures and agency strategy in the modern regulatory landscape.
 
@@ -523,6 +568,49 @@ ggplot(unified_yearly, aes(x = year, y = total_documents)) +
     y = "Total Documents"
   ) +
   theme_minimal()
+```
+
+```{r}
+#| label: 300 dots, Total Documents Published Each Year (2000-2024)
+
+# Ensure 'month_num' exists in unified_data (if not already added)
+if (!"month_num" %in% names(unified_data)) {
+  unified_data <- unified_data %>%
+    mutate(month_num = match(month, month.name)) # Assumes 'month' is like "January"
+}
+
+# Define y-variable from unified_data
+yvar_total_docs <- "total_documents"
+
+# Define y-axis label
+ylab_total_docs <- "Number of Total Documents"
+
+# Define base for the plot title
+base_title_total_docs <- "FDA Total Documents Published by Month"
+
+# Dynamically create the full title
+# Option 1: Fixed start year for the title (e.g., 2000)
+title_start_year_td <- 2000
+# Option 2: Dynamic start year for the title (uncomment if preferred)
+# title_start_year_td <- min(unified_data$year, na.rm = TRUE)
+
+title_end_year_td <- max(unified_data$year, na.rm = TRUE)
+
+dynamic_title_total_docs <- paste0(base_title_total_docs, " (", title_start_year_td, "-", title_end_year_td, ")")
+if (title_start_year_td == title_end_year_td) {
+  dynamic_title_total_docs <- paste0(base_title_total_docs, " (", title_start_year_td, ")")
+}
+
+# Create the plot for total documents
+plot_total_docs_monthly <- make_plot_monthly(
+  df_monthly = unified_data,
+  yvar = yvar_total_docs,
+  ylab = ylab_total_docs,
+  title = dynamic_title_total_docs
+)
+
+# Print the plot (or assign it to a list, display in R Markdown, etc.)
+print(plot_total_docs_monthly)
 ```
 
 ```{r}
@@ -698,35 +786,34 @@ library(stargazer)
 
 #-- Rules -------------------------------------------------------------------
 rd_rules_dist_all <- lm(rules ~ distance, data = rd_data_all)
+rd_rules_controls_all <- lm(rules ~ distance + month + transition + D, data = rd_data_all)
 rd_rules_full_all <- lm(rules ~ treatment * distance + month + transition + D, data = rd_data_all)
-rd_rules_dist_pre <- lm(rules ~ distance, data = filter(rd_data_all, treatment == 0))
-rd_rules_full_pre <- lm(rules ~ distance + month + transition + D, data = filter(rd_data_all, treatment == 0))
 
 #-- Guidance ---------------------------------------------------------------
 rd_guidance_dist_all <- lm(guidance ~ distance, data = rd_data_all)
+rd_guidance_controls_all <- lm(guidance ~ distance + month + transition + D, data = rd_data_all)
 rd_guidance_full_all <- lm(guidance ~ treatment * distance + month + transition + D, data = rd_data_all)
-rd_guidance_dist_pre <- lm(guidance ~ distance, data = filter(rd_data_all, treatment == 0))
-rd_guidance_full_pre <- lm(guidance ~ distance + month + transition + D, data = filter(rd_data_all, treatment == 0))
 
 #-- Total Documents --------------------------------------------------------
 rd_total_dist_all <- lm(total_documents ~ distance, data = rd_data_all)
+rd_total_controls_all <- lm(total_documents ~ distance + month + transition + D, data = rd_data_all)
 rd_total_full_all <- lm(total_documents ~ treatment * distance + month + transition + D, data = rd_data_all)
-rd_total_dist_pre <- lm(total_documents ~ distance, data = filter(rd_data_all, treatment == 0))
-rd_total_full_pre <- lm(total_documents ~ distance + month + transition + D, data = filter(rd_data_all, treatment == 0))
 
 #-- Proportion -------------------------------------------------------------
 rd_prop_dist_all <- lm(proportion_rules ~ distance, data = rd_data_all)
+rd_prop_controls_all <- lm(proportion_rules ~ distance + month + transition + D, data = rd_data_all)
 rd_prop_full_all <- lm(proportion_rules ~ treatment * distance + month + transition + D, data = rd_data_all)
-rd_prop_dist_pre <- lm(proportion_rules ~ distance, data = filter(rd_data_all, treatment == 0))
-rd_prop_full_pre <- lm(proportion_rules ~ distance + month + transition + D, data = filter(rd_data_all, treatment == 0))
 
 
 # 2. Render tables ----------------------------------------------------------
 
+# These will be used consistently for all tables.
+new_column_labels <- c("Dist. Only", "Dist. + Crtls", "Treatment x Dist + Ctrls)")
+
 # Rules table
-stargazer(rd_rules_dist_all, rd_rules_full_all, rd_rules_dist_pre, rd_rules_full_pre,
+stargazer(rd_rules_dist_all, rd_rules_controls_all, rd_rules_full_all,
           title = "RD Models for FDA Rules",
-          column.labels = c("Distance-only (all)", "Full (all)", "Distance-only (pre)", "Full (pre)"),
+          column.labels = new_column_labels,
           dep.var.labels = "Rules",
           type = "text",
           omit.stat = c("f", "ser"),
@@ -734,9 +821,9 @@ stargazer(rd_rules_dist_all, rd_rules_full_all, rd_rules_dist_pre, rd_rules_full
           no.space = TRUE)
 
 # Guidance table
-stargazer(rd_guidance_dist_all, rd_guidance_full_all, rd_guidance_dist_pre, rd_guidance_full_pre,
+stargazer(rd_guidance_dist_all, rd_guidance_controls_all, rd_guidance_full_all,
           title = "RD Models for FDA Guidance Documents",
-          column.labels = c("Distance-only (all)", "Full (all)", "Distance-only (pre)", "Full (pre)"),
+          column.labels = new_column_labels,
           dep.var.labels = "Guidance",
           type = "text",
           omit.stat = c("f", "ser"),
@@ -744,9 +831,9 @@ stargazer(rd_guidance_dist_all, rd_guidance_full_all, rd_guidance_dist_pre, rd_g
           no.space = TRUE)
 
 # Total Documents table
-stargazer(rd_total_dist_all, rd_total_full_all, rd_total_dist_pre, rd_total_full_pre,
+stargazer(rd_total_dist_all, rd_total_controls_all, rd_total_full_all,
           title = "RD Models for Total Documents",
-          column.labels = c("Distance-only (all)", "Full (all)", "Distance-only (pre)", "Full (pre)"),
+          column.labels = new_column_labels,
           dep.var.labels = "Total Documents",
           type = "text",
           omit.stat = c("f", "ser"),
@@ -754,9 +841,9 @@ stargazer(rd_total_dist_all, rd_total_full_all, rd_total_dist_pre, rd_total_full
           no.space = TRUE)
 
 # Proportion table
-stargazer(rd_prop_dist_all, rd_prop_full_all, rd_prop_dist_pre, rd_prop_full_pre,
+stargazer(rd_prop_dist_all, rd_prop_controls_all, rd_prop_full_all,
           title = "RD Models for Proportion of FDA Rules",
-          column.labels = c("Distance-only (all)", "Full (all)", "Distance-only (pre)", "Full (pre)"),
+          column.labels = new_column_labels,
           dep.var.labels = "Proportion",
           type = "text",
           omit.stat = c("f", "ser"),
