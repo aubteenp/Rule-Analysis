@@ -1,6 +1,6 @@
 ---
 title: "DataWatch"
-format: pdf
+format: html
 editor: visual
 ---
 
@@ -178,24 +178,26 @@ Graph 1 demonstrates a clear, steady decline in the proportion of FDA rules rela
 ```{r}
 #| label: Plot 4 - Proportion of FDA Rules to Total Documents Each Year (2000-2024)
 #| echo: false
+#| results: "hide"
 
-## Plot 4 - Proportion of FDA Rules to Total Documents Each Year (2000-2024)
-
-
-ggplot(unified_yearly, aes(x = year, y = proportion_rules)) +
-  geom_line(colour = loess_cols[1], linewidth = 0.8) +
-  geom_point(colour = loess_cols[2], size = 2) +
-  geom_smooth(method = "loess", span = loess_span, se = FALSE,
-              colour = smooth_col, linewidth = 1.1) +
-  scale_y_continuous(labels = scales::percent) +
-  labs(title = "Share of Formal Rules in FDA Output (2000-2024)",
-       x = "Year", y = "Rules as % of total") +
-  theme_minimal()
+# ## Plot 4 - Proportion of FDA Rules to Total Documents Each Year (2000-2024)
+# 
+# 
+# ggplot(unified_yearly, aes(x = year, y = proportion_rules)) +
+#   geom_line(colour = loess_cols[1], linewidth = 0.8) +
+#   geom_point(colour = loess_cols[2], size = 2) +
+#   geom_smooth(method = "loess", span = loess_span, se = FALSE,
+#               colour = smooth_col, linewidth = 1.1) +
+#   scale_y_continuous(labels = scales::percent) +
+#   labs(title = "Share of Formal Rules in FDA Output (2000-2024)",
+#        x = "Year", y = "Rules as % of total") +
+#   theme_minimal()
 
 ```
 
 ```{r}
 #| label: Smooth w dots
+#| echo: false
 # ggplot(unified_yearly, aes(x = year, y = proportion_rules)) +
 #   geom_point(colour = pt_col, size = 2) +
 #   geom_smooth(method = "loess", span = loess_span,
@@ -208,6 +210,8 @@ ggplot(unified_yearly, aes(x = year, y = proportion_rules)) +
 
 ```{r}
 #| label: Smooth w dots AND trend line
+#| echo: false
+
 # make_plot <- function(df, yvar, ylab, title) {
 #   # compute OLS yearly trend
 #   form <- reformulate("year", yvar)          # e.g. total_rules ~ year
@@ -241,6 +245,9 @@ ggplot(unified_yearly, aes(x = year, y = proportion_rules)) +
 ```
 
 ```{r}
+#| label: Monthly Data - Proportion of FDA Rules to Total Documents Each Year (2000-2024)
+#| echo: false
+
 make_plot <- function(df_yearly, df_monthly, yvar, ylab, title) {
   # compute OLS yearly trend for the yearly data
   form <- reformulate("year", yvar)          # e.g. total_rules ~ year
@@ -263,7 +270,8 @@ make_plot <- function(df_yearly, df_monthly, yvar, ylab, title) {
     geom_smooth(data = df_yearly,
                 aes(x = year, y = .data[[yvar]]),
                 method = "lm", se = FALSE, colour = trend_col,
-                linetype = trend_lt, linewidth = 0.9) +
+                linetype = trend_lt, linewidth = 0.9
+                ) +
     # Add the slope annotation
     annotate("text", x = ann_x,
              y = max(df_yearly[[yvar]]), hjust = 0,
@@ -303,6 +311,8 @@ print(plot_prop)
 ```
 
 ```{r}
+#| echo: false
+
 # make_plot_with_cutoff <- function(df_yearly, df_monthly, yvar, ylab, title, cutoff_date = "2024-06-30") {
 #   # Convert cutoff_date to numeric year for plotting
 #   cutoff_year_numeric <- as.numeric(format(as.Date(cutoff_date), "%Y")) + 
@@ -419,27 +429,29 @@ Graph 2 depicts a persistent decline in the number of formal FDA rules issued an
 ```{r}
 #| label: Total Rules Published Each Year (2000-2024)
 #| echo: false
+#| results: "hide"
 
-## Plot 1 - Total Rules Published Each Year (2000-2024)
-ggplot(unified_yearly, aes(x = year, y = total_rules)) +
-  geom_line(color = "steelblue", size = 1) +
-  geom_point(color = "darkred", size = 2) +
-    geom_smooth(method = "lm", se = FALSE, color = "black", linetype = "dashed") +
-  annotate("text", x = min(unified_yearly$year) + 1, 
-           y = max(unified_yearly$total_rules), 
-           label = paste("Slope =", slope_rules), 
-           hjust = 0, color = "black") +
-
-  labs(
-    title = "Total Rules Published Each Year (2000-2024)",
-    x = "Year",
-    y = "Total Rules"
-  ) +
-  theme_minimal()
+# ## Plot 1 - Total Rules Published Each Year (2000-2024)
+# ggplot(unified_yearly, aes(x = year, y = total_rules)) +
+#   geom_line(color = "steelblue", size = 1) +
+#   geom_point(color = "darkred", size = 2) +
+#     geom_smooth(method = "lm", se = FALSE, color = "black", linetype = "dashed") +
+#   annotate("text", x = min(unified_yearly$year) + 1, 
+#            y = max(unified_yearly$total_rules), 
+#            label = paste("Slope =", slope_rules), 
+#            hjust = 0, color = "black") +
+# 
+#   labs(
+#     title = "Total Rules Published Each Year (2000-2024)",
+#     x = "Year",
+#     y = "Total Rules"
+#   ) +
+#   theme_minimal()
 ```
 
 ```{r}
 #| label: Rules Graph w 300 dots
+#| echo: false
 
 make_plot_monthly <- function(df_monthly, yvar, ylab, title) {
   # Ensure df_monthly has proper date format for x-axis
@@ -450,7 +462,7 @@ make_plot_monthly <- function(df_monthly, yvar, ylab, title) {
   form <- reformulate("date_decimal", yvar)
   model <- lm(form, df_monthly)
   slope <- coef(model)[2]
-  slope_lbl <- paste0("Annual slope = ", round(slope*12, 3))  # Annualized for easier interpretation
+  slope_lbl <- paste0("Annual slope = ", round(slope, 3))  # Annualized for easier interpretation
   
   ggplot(df_monthly, aes(x = date_decimal, y = .data[[yvar]])) +
     geom_point(colour = "gray40", size = 0.8, alpha = 0.5) +  # Smaller points with some transparency
@@ -485,26 +497,28 @@ Graph 3 illustrates a marked upward trend in the publication of FDA guidance doc
 ```{r}
 #| label: Total Guidance Documents Published Each Year (2000-2024)
 #| echo: false
-
-## Plot 2 - Total Guidance Documents Published Each Year (2000-2024)
-ggplot(unified_yearly, aes(x = year, y = total_guidance)) +
-  geom_line(color = "steelblue", size = 1) +
-  geom_point(color = "darkred", size = 2) +
-    geom_smooth(method = "lm", se = FALSE, color = "black", linetype = "dashed") +
-  annotate("text", x = min(unified_yearly$year) + 1, 
-           y = max(unified_yearly$total_guidance), 
-           label = paste("Slope =", slope_guidance), 
-           hjust = 0, color = "black") +
-  labs(
-    title = "Total Guidance Documents Published Each Year (2000-2024)",
-    x = "Year",
-    y = "Total Guidance Documents"
-  ) +
-  theme_minimal()
+#| results: "hide"
+# 
+# ## Plot 2 - Total Guidance Documents Published Each Year (2000-2024)
+# ggplot(unified_yearly, aes(x = year, y = total_guidance)) +
+#   geom_line(color = "steelblue", size = 1) +
+#   geom_point(color = "darkred", size = 2) +
+#     geom_smooth(method = "lm", se = FALSE, color = "black", linetype = "dashed") +
+#   annotate("text", x = min(unified_yearly$year) + 1, 
+#            y = max(unified_yearly$total_guidance), 
+#            label = paste("Slope =", slope_guidance), 
+#            hjust = 0, color = "black") +
+#   labs(
+#     title = "Total Guidance Documents Published Each Year (2000-2024)",
+#     x = "Year",
+#     y = "Total Guidance Documents"
+#   ) +
+#   theme_minimal()
 ```
 
 ```{r}
 #| label: Monthly data - Total Guidance Documents Published Each Year (2000-2024)
+#| echo: false
 
 # Ensure 'month_num' exists in unified_data (if not already added, though previous block might have)
 if (!"month_num" %in% names(unified_data)) {
@@ -552,26 +566,28 @@ Graph 4 presents the combined total of FDA regulatory documents, including both 
 ```{r}
 #| label: Total Documents Published Each Year (2000-2024)
 #| echo: false
+#| results: "hide"
 
-## Plot 3 - Total Documents Published Each Year (2000-2024)
-ggplot(unified_yearly, aes(x = year, y = total_documents)) +
-  geom_line(color = "steelblue", size = 1) +
-  geom_point(color = "darkred", size = 2) +
-    geom_smooth(method = "lm", se = FALSE, color = "black", linetype = "dashed") +
-  annotate("text", x = min(unified_yearly$year) + 1, 
-           y = max(unified_yearly$total_documents), 
-           label = paste("Slope =", slope_total), 
-           hjust = 0, color = "black") +
-  labs(
-    title = "Total Documents Published Each Year (2000-2024)",
-    x = "Year",
-    y = "Total Documents"
-  ) +
-  theme_minimal()
+# ## Plot 3 - Total Documents Published Each Year (2000-2024)
+# ggplot(unified_yearly, aes(x = year, y = total_documents)) +
+#   geom_line(color = "steelblue", size = 1) +
+#   geom_point(color = "darkred", size = 2) +
+#     geom_smooth(method = "lm", se = FALSE, color = "black", linetype = "dashed") +
+#   annotate("text", x = min(unified_yearly$year) + 1, 
+#            y = max(unified_yearly$total_documents), 
+#            label = paste("Slope =", slope_total), 
+#            hjust = 0, color = "black") +
+#   labs(
+#     title = "Total Documents Published Each Year (2000-2024)",
+#     x = "Year",
+#     y = "Total Documents"
+#   ) +
+#   theme_minimal()
 ```
 
 ```{r}
 #| label: 300 dots, Total Documents Published Each Year (2000-2024)
+#| echo: false
 
 # Ensure 'month_num' exists in unified_data (if not already added)
 if (!"month_num" %in% names(unified_data)) {
@@ -645,39 +661,7 @@ unified_data <- unified_data %>%
 
 ```
 
-## Regression Specifications
-
-$$
-Y_i = \alpha + \tau D_i + \beta X_i + \gamma (D_i \times X_i) + \sum_{m=1}^{11} \delta_m M_{im} + \theta T_i + \epsilon_i
-$$
-
-Where:
-
--   ($Y_i$): The number of rules, guidance documents, total documents, or the proportion of rules to total documents published in month $i$.
-
--   ($\alpha$): Intercept term (baseline level of $Y$).
-
--   ($D_i$): Treatment Indicator for month ($i$). $D_i$ = 1 if month $i$ is after June 2024 and 0 otherwise.
-
--   ($X_i$): Running Variable representing the distance from the cutoff (June 2024) for month $i$). Measured in months: $X_i$ = Number of months since June 2024
-
-    -   ($X_i > 0$): Post-June 2024 (treatment group)
-
-    -   ($X_i < 0$): Pre-June 2024 (control group)
-
--   ($\beta$): The Treatment Effect
-
--   ($\gamma$): Coefficient for the interaction between treatment and distance, capturing the change in slope after the cutoff.
-
--   ($M_{im}$): Monthly Dummy Variables for each month ( $m$, January to December), excluding one month to avoid multicollinearity (December is the reference category).
-
--   ($\delta_m$): Coefficients for each monthly dummy variable, capturing the effect of being in month ($m$) relative to the reference month.
-
--   ($T_i$): Presidential Transition Indicator for month ($i$). $T_i = 1$ if the month is either September--December of an election year or January of the year following an election year, and 0 otherwise.
-
--   ($\theta$): Coefficient capturing the effect associated with presidential transition years.
-
--   ($\epsilon_i$): Error Term capturing unobserved factors affecting ($Y_i$).
+## Appendix
 
 ```{r}
 #| label: Define RD Analyses
@@ -808,7 +792,7 @@ rd_prop_full_all <- lm(proportion_rules ~ treatment * distance + month + transit
 # 2. Render tables ----------------------------------------------------------
 
 # These will be used consistently for all tables.
-new_column_labels <- c("Dist. Only", "Dist. + Crtls", "Treatment x Dist + Ctrls)")
+new_column_labels <- c("Dist. Only  ", "Dist. + Crtls  ", "Treatment x Dist + Ctrls)")
 
 # Rules table
 stargazer(rd_rules_dist_all, rd_rules_controls_all, rd_rules_full_all,

@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.353">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>DataWatch</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="DataWatch_files/libs/clipboard/clipboard.min.js"></script>
+<script src="DataWatch_files/libs/quarto-html/quarto.js"></script>
+<script src="DataWatch_files/libs/quarto-html/popper.min.js"></script>
+<script src="DataWatch_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="DataWatch_files/libs/quarto-html/anchor.min.js"></script>
+<link href="DataWatch_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="DataWatch_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="DataWatch_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="DataWatch_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="DataWatch_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">DataWatch</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<section id="deck" class="level2">
+<h2 class="anchored" data-anchor-id="deck">Deck</h2>
+<p>The U.S. Food and Drug Administration (FDA) has experienced significant shifts in its regulatory approach over the past two decades. This study examines trends in regulatory output from 2000 to 2024 by analyzing two key data sources: formal rules published in the Federal Register and guidance documents available on the FDA website. Formal rules represent the traditional, legally binding regulatory actions, whereas guidance documents offer more flexible policy direction without undergoing the complete notice-and-comment process. By merging these datasets into a unified monthly series and applying regression discontinuity and interrupted time series analyses, we explore how judicial decisions and administrative changes have reshaped the FDA’s reliance on formal versus informal regulatory mechanisms. Our investigation provides insights into evolving regulatory strategies and their implications for policy implementation and transparency. Our regression analyses indicate that for each month away from the cutoff, formal FDA rules decline by about 0.033 units and the proportion of rules among all regulatory documents decreases by roughly 0.2 percentage points. Although guidance documents increase by approximately 0.02 units per month, this modest rise does not fully counterbalance the falling trend in formal rulemaking, resulting in a net decline in overall regulatory output.</p>
+</section>
+<section id="intro" class="level2">
+<h2 class="anchored" data-anchor-id="intro">Intro</h2>
+<p>Our analysis reveals four key findings about FDA regulatory output over the past twenty-four years. First, there is a striking decrease in the proportion of formal rules relative to total regulatory documents, suggesting a significant strategic shift away from traditional rulemaking. Second, the annual count of formal FDA rules has steadily declined, highlighting a reduced reliance on conventional regulatory processes. Third, there has been a notable increase in the issuance of guidance documents, indicating a growing preference for more flexible regulatory tools. Finally, despite the rise in guidance documents, the net total of regulatory documents has declined, implying that the increase in guidance has not fully offset the reduction in formal rulemaking. These trends underscore a complex evolution in FDA regulatory practices.</p>
+<p><strong>Data Sources and Methods</strong></p>
+<p>The analysis draws on two primary data sources. Data on formal rules were obtained from the Federal Register, which is the official publication for federal agency rulemaking. This source provides a comprehensive record of all rules and regulations published by federal agencies. In parallel, information on FDA guidance documents was extracted from the FDA webpage’s guidance document database. These complementary databases enable a comparison between formal rulemaking and the alternative, less formal guidance approach.</p>
+<p>For the period spanning 2000 to 2024, the rule and guidance datasets were cleaned and merged into a unified monthly dataset. This dataset includes counts of rules and guidance documents, the total number of documents, and the calculated proportion of rules to total documents for each month. Missing data points were filled with zeros to ensure a complete and consistent time series. This unified dataset served as the basis for further analysis, including regression discontinuity (RD) and interrupted time series (ITS) models, which assess the impact of key policy changes—specifically the FDA guidance and rulemaking adjustments following landmark judicial decisions in 2024.</p>
+</section>
+<section id="running-code" class="level2">
+<h2 class="anchored" data-anchor-id="running-code">Running Code</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Compute slopes from the unified_yearly data for each outcome</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Slope for Total Rules</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>slope_rules <span class="ot">&lt;-</span> <span class="fu">round</span>(<span class="fu">coef</span>(<span class="fu">lm</span>(total_rules <span class="sc">~</span> year, <span class="at">data =</span> unified_yearly))[<span class="dv">2</span>], <span class="dv">3</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Slope for Total Guidance Documents</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>slope_guidance <span class="ot">&lt;-</span> <span class="fu">round</span>(<span class="fu">coef</span>(<span class="fu">lm</span>(total_guidance <span class="sc">~</span> year, <span class="at">data =</span> unified_yearly))[<span class="dv">2</span>], <span class="dv">3</span>)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Slope for Total Documents</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>slope_total <span class="ot">&lt;-</span> <span class="fu">round</span>(<span class="fu">coef</span>(<span class="fu">lm</span>(total_documents <span class="sc">~</span> year, <span class="at">data =</span> unified_yearly))[<span class="dv">2</span>], <span class="dv">3</span>)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Slope for Proportion of FDA Rules</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>slope_prop <span class="ot">&lt;-</span> <span class="fu">round</span>(<span class="fu">coef</span>(<span class="fu">lm</span>(proportion_rules <span class="sc">~</span> year, <span class="at">data =</span> unified_yearly))[<span class="dv">2</span>], <span class="dv">3</span>)</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>loess_span <span class="ot">&lt;-</span> .<span class="dv">6</span>            <span class="co"># 0.8 is Stata’s default; smaller = wigglier curve</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>loess_cols <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"steelblue"</span>, <span class="st">"darkred"</span>)   <span class="co"># raw line + points colours</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>smooth_col <span class="ot">&lt;-</span> <span class="st">"steelblue"</span>       <span class="co"># colour for the lowess curve</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>pt_col     <span class="ot">&lt;-</span> <span class="st">"darkred"</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>smooth_col <span class="ot">&lt;-</span> <span class="st">"steelblue"</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>trend_col  <span class="ot">&lt;-</span> <span class="st">"black"</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>trend_lt   <span class="ot">&lt;-</span> <span class="st">"dotted"</span>   <span class="co"># line type for the global trend</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>ann_x      <span class="ot">&lt;-</span> <span class="fu">min</span>(unified_yearly<span class="sc">$</span>year) <span class="sc">+</span> <span class="dv">10</span>   <span class="co"># x-position for slope label</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><strong>Graph 1: Striking Decrease in the Proportion of FDA Rules to Total Documents Over Time</strong><br>
+</p>
+<p>Graph 1 demonstrates a clear, steady decline in the proportion of FDA rules relative to the total regulatory documents (rules plus guidance) from 2000 to 2024. This downward trend highlights a marked shift in regulatory practice, with the FDA increasingly favoring less formal instruments over traditional rulemaking. These findings underscore the possibility that legal, administrative, and political factors are driving the agency toward more flexible, expedient regulatory approaches.</p>
+<div class="cell">
+<div class="cell-output cell-output-stderr">
+<pre><code>`geom_smooth()` using formula = 'y ~ x'
+`geom_smooth()` using formula = 'y ~ x'</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="DataWatch_files/figure-html/Monthly%20Data%20-%20Proportion%20of%20FDA%20Rules%20to%20Total%20Documents%20Each%20Year%20(2000-2024)-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p><strong>Graph 2: Decrease in Total FDA Rules Published Each Year</strong><br>
+Graph 2 depicts a persistent decline in the number of formal FDA rules issued annually from 2000 to 2024. This consistent reduction in rule output suggests that the agency is steadily moving away from the traditional, formal rulemaking process. Contributing factors may include increasing administrative burdens, greater legal scrutiny, and a strategic pivot toward alternative regulatory mechanisms such as guidance documents. As the number of formal rules falls, <u><em>the overall impact of traditional regulatory measures may be reduced, potentially affecting regulatory consistency and transparency</em></u>.</p>
+<div class="cell">
+<div class="cell-output cell-output-stderr">
+<pre><code>`geom_smooth()` using formula = 'y ~ x'
+`geom_smooth()` using formula = 'y ~ x'</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="DataWatch_files/figure-html/Rules%20Graph%20w%20300%20dots-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p><strong>Graph 3: Increase in the Number of FDA Guidance Documents Published Each Year</strong><br>
+Graph 3 illustrates a marked upward trend in the publication of FDA guidance documents from 2000 to 2024. As formal rulemaking has declined, the FDA appears to be increasingly relying on guidance documents to communicate policy and regulatory expectations. These documents offer a more flexible and less cumbersome alternative to formal rules, allowing the agency to respond more swiftly to emerging challenges. The graph highlights a strategic shift towards alternative regulatory instruments and suggests that the FDA is adapting its regulatory toolkit to better meet contemporary challenges.</p>
+<div class="cell">
+<div class="cell-output cell-output-stderr">
+<pre><code>`geom_smooth()` using formula = 'y ~ x'
+`geom_smooth()` using formula = 'y ~ x'</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="DataWatch_files/figure-html/Monthly%20data%20-%20Total%20Guidance%20Documents%20Published%20Each%20Year%20(2000-2024)-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p><strong>Graph 4: Net Decline in Total FDA Regulatory Documents Published Each Year</strong><br>
+Graph 4 presents the combined total of FDA regulatory documents, including both formal rules and guidance documents, from 2000 to 2024. Despite the increase in guidance documents, the overall output has declined, indicating that the reduction in formal rulemaking has not been completely offset. This net decline reflects a more restrained overall approach to regulation by the FDA, possibly driven by heightened legal constraints and evolving administrative priorities. The downward trend in total regulatory output raises important questions about the effectiveness of policy implementation in a changing legal and political environment. It highlights the complex interplay between judicial pressures and agency strategy in the modern regulatory landscape.</p>
+<div class="cell">
+<div class="cell-output cell-output-stderr">
+<pre><code>`geom_smooth()` using formula = 'y ~ x'
+`geom_smooth()` using formula = 'y ~ x'</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="DataWatch_files/figure-html/300%20dots,%20Total%20Documents%20Published%20Each%20Year%20(2000-2024)-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="appendix" class="level2">
+<h2 class="anchored" data-anchor-id="appendix">Appendix</h2>
+</section>
+<section id="interrupted-time-series-results" class="level2">
+<h2 class="anchored" data-anchor-id="interrupted-time-series-results">Interrupted Time Series Results</h2>
+<p>Notes:</p>
+<p>Look at another dataset or report that verifies report</p>
+<ul>
+<li><p>This is extenal inconsistency, also look at internal inconsistency.</p></li>
+<li><p>Change to monthly and then smooth the series</p></li>
+</ul>
+<p>If the monthly process were perfectly linear and seasonality were flat, you <strong>would</strong> expect β_year ≈ 12 × β_month.</p>
+<div class="cell">
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Please cite as: </code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code> Hlavac, Marek (2022). stargazer: Well-Formatted Regression and Summary Statistics Tables.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code> R package version 5.2.3. https://CRAN.R-project.org/package=stargazer </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+RD Models for FDA Rules
+=====================================================================
+                                  Dependent variable:                
+                   --------------------------------------------------
+                                         Rules                       
+                   Dist. Only Dist. + Crtls Treatment x Dist + Ctrls)
+                      (1)          (2)                 (3)           
+---------------------------------------------------------------------
+treatment                                             7.018          
+                                                     (4.377)         
+distance           -0.031***    -0.032***           -0.033***        
+                    (0.003)      (0.003)             (0.003)         
+month.L                           0.530               0.500          
+                                 (0.939)             (0.940)         
+month.Q                           0.386               0.570          
+                                 (0.940)             (0.945)         
+month.C                         3.002***            3.129***         
+                                 (0.925)             (0.929)         
+month4                           -0.009              -0.047          
+                                 (0.917)             (0.916)         
+month5                           1.938**             1.829**         
+                                 (0.920)             (0.920)         
+month6                            1.022               1.049          
+                                 (0.920)             (0.919)         
+month7                          -2.337**            -2.255**         
+                                 (0.918)             (0.918)         
+month8                           2.046**             2.040**         
+                                 (0.917)             (0.916)         
+month9                           -1.479              -1.555*         
+                                 (0.918)             (0.918)         
+month10                           0.590               0.584          
+                                 (0.918)             (0.917)         
+month11                          -0.376              -0.305          
+                                 (0.917)             (0.917)         
+transition                        1.138               0.956          
+                                 (1.044)             (1.111)         
+D                                 0.321               0.284          
+                                 (0.572)             (0.572)         
+treatment:distance                                   -1.288          
+                                                     (1.137)         
+Constant            4.063***    3.662***            3.523***         
+                    (0.529)      (0.707)             (0.713)         
+---------------------------------------------------------------------
+Observations          300          300                 300           
+R2                   0.247        0.324               0.331          
+Adjusted R2          0.244        0.291               0.293          
+=====================================================================
+Note:                                     *p&lt;0.1; **p&lt;0.05; ***p&lt;0.01</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+RD Models for FDA Guidance Documents
+=====================================================================
+                                  Dependent variable:                
+                   --------------------------------------------------
+                                        Guidance                     
+                   Dist. Only Dist. + Crtls Treatment x Dist + Ctrls)
+                      (1)          (2)                 (3)           
+---------------------------------------------------------------------
+treatment                                             6.933          
+                                                     (6.753)         
+distance            0.018***    0.021***            0.020***         
+                    (0.005)      (0.005)             (0.005)         
+month.L                          3.164**             3.155**         
+                                 (1.445)             (1.450)         
+month.Q                          -0.077               0.100          
+                                 (1.445)             (1.457)         
+month.C                          -0.039               0.100          
+                                 (1.423)             (1.434)         
+month4                           -1.842              -1.880          
+                                 (1.411)             (1.414)         
+month5                           -1.689              -1.787          
+                                 (1.414)             (1.420)         
+month6                           -1.003              -0.984          
+                                 (1.415)             (1.418)         
+month7                           -1.956              -1.880          
+                                 (1.411)             (1.416)         
+month8                            0.221               0.213          
+                                 (1.410)             (1.412)         
+month9                           -1.312              -1.380          
+                                 (1.412)             (1.416)         
+month10                          -0.446              -0.444          
+                                 (1.412)             (1.415)         
+month11                          -0.549              -0.476          
+                                 (1.411)             (1.415)         
+transition                        0.589               0.541          
+                                 (1.605)             (1.714)         
+D                                -1.202              -1.230          
+                                 (0.880)             (0.883)         
+treatment:distance                                   -1.455          
+                                                     (1.754)         
+Constant            8.470***    9.346***            9.236***         
+                    (0.789)      (1.087)             (1.099)         
+---------------------------------------------------------------------
+Observations          300          300                 300           
+R2                   0.049        0.095               0.098          
+Adjusted R2          0.046        0.050               0.047          
+=====================================================================
+Note:                                     *p&lt;0.1; **p&lt;0.05; ***p&lt;0.01</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+RD Models for Total Documents
+=====================================================================
+                                  Dependent variable:                
+                   --------------------------------------------------
+                                    Total Documents                  
+                   Dist. Only Dist. + Crtls Treatment x Dist + Ctrls)
+                      (1)          (2)                 (3)           
+---------------------------------------------------------------------
+treatment                                            13.950          
+                                                     (8.478)         
+distance            -0.013**     -0.012*            -0.013**         
+                    (0.006)      (0.006)             (0.007)         
+month.L                          3.694**             3.655**         
+                                 (1.819)             (1.821)         
+month.Q                           0.309               0.670          
+                                 (1.820)             (1.830)         
+month.C                          2.963*              3.230*          
+                                 (1.792)             (1.800)         
+month4                           -1.851              -1.927          
+                                 (1.777)             (1.775)         
+month5                            0.250               0.043          
+                                 (1.781)             (1.783)         
+month6                            0.018               0.065          
+                                 (1.782)             (1.780)         
+month7                          -4.293**            -4.135**         
+                                 (1.778)             (1.777)         
+month8                            2.266               2.253          
+                                 (1.776)             (1.773)         
+month9                           -2.791              -2.934*         
+                                 (1.778)             (1.778)         
+month10                           0.144               0.140          
+                                 (1.779)             (1.777)         
+month11                          -0.926              -0.781          
+                                 (1.777)             (1.776)         
+transition                        1.727               1.496          
+                                 (2.022)             (2.152)         
+D                                -0.881              -0.946          
+                                 (1.108)             (1.108)         
+treatment:distance                                   -2.743          
+                                                     (2.201)         
+Constant           12.533***    13.008***           12.759***        
+                    (1.004)      (1.369)             (1.380)         
+---------------------------------------------------------------------
+Observations          300          300                 300           
+R2                   0.015        0.081               0.090          
+Adjusted R2          0.012        0.036               0.039          
+=====================================================================
+Note:                                     *p&lt;0.1; **p&lt;0.05; ***p&lt;0.01</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+RD Models for Proportion of FDA Rules
+=====================================================================
+                                  Dependent variable:                
+                   --------------------------------------------------
+                                       Proportion                    
+                   Dist. Only Dist. + Crtls Treatment x Dist + Ctrls)
+                      (1)          (2)                 (3)           
+---------------------------------------------------------------------
+treatment                                             0.052          
+                                                     (0.189)         
+distance           -0.002***    -0.002***           -0.002***        
+                    (0.0001)    (0.0001)            (0.0001)         
+month.L                         -0.081**            -0.080**         
+                                 (0.040)             (0.040)         
+month.Q                           0.047               0.048          
+                                 (0.040)             (0.041)         
+month.C                          0.090**             0.091**         
+                                 (0.040)             (0.040)         
+month4                            0.005               0.005          
+                                 (0.039)             (0.039)         
+month5                            0.062               0.062          
+                                 (0.039)             (0.040)         
+month6                            0.033               0.033          
+                                 (0.039)             (0.040)         
+month7                            0.013               0.013          
+                                 (0.039)             (0.040)         
+month8                           -0.012              -0.012          
+                                 (0.039)             (0.039)         
+month9                           -0.016              -0.017          
+                                 (0.039)             (0.040)         
+month10                           0.025               0.025          
+                                 (0.039)             (0.040)         
+month11                          -0.015              -0.015          
+                                 (0.039)             (0.040)         
+transition                       -0.021              -0.020          
+                                 (0.045)             (0.048)         
+D                                0.047*              0.047*          
+                                 (0.025)             (0.025)         
+treatment:distance                                   -0.012          
+                                                     (0.049)         
+Constant            0.347***    0.311***            0.311***         
+                    (0.022)      (0.030)             (0.031)         
+---------------------------------------------------------------------
+Observations          300          300                 300           
+R2                   0.365        0.406               0.406          
+Adjusted R2          0.363        0.377               0.373          
+=====================================================================
+Note:                                     *p&lt;0.1; **p&lt;0.05; ***p&lt;0.01</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Interrupted Time Series Analysis Results
+======================================================================================
+                                           Dependent variable:                        
+                   -------------------------------------------------------------------
+                         Rules           Guidance          Total         Proportion   
+                          (1)              (2)              (3)              (4)      
+--------------------------------------------------------------------------------------
+treatment                7.018            6.933            13.950           0.052     
+                        (4.377)          (6.753)          (8.478)          (0.189)    
+distance               -0.033***         0.020***         -0.013**        -0.002***   
+                        (0.003)          (0.005)          (0.007)         (0.0001)    
+transition               0.956            0.541            1.496           -0.020     
+                        (1.111)          (1.714)          (2.152)          (0.048)    
+D                        0.284            -1.230           -0.946          0.047*     
+                        (0.572)          (0.883)          (1.108)          (0.025)    
+treatment:distance      -1.288            -1.455           -2.743          -0.012     
+                        (1.137)          (1.754)          (2.201)          (0.049)    
+--------------------------------------------------------------------------------------
+Observations              300              300              300              300      
+R2                       0.331            0.098            0.090            0.406     
+Adjusted R2              0.293            0.047            0.039            0.373     
+======================================================================================
+Note:                                                      *p&lt;0.1; **p&lt;0.05; ***p&lt;0.01
+                      Standard errors are reported in parentheses below the estimates.</code></pre>
+</div>
+</div>
+<p>The results show clear and contrasting trends across the four dependent variables. In the model for formal FDA rules, the distance variable is significantly negative (–0.033, p&lt;0.01), indicating that for each additional month from the cutoff, the average number of published rules declines. In contrast, the guidance documents model features a significantly positive distance effect (0.020, p&lt;0.01), suggesting that as time from the cutoff increases, the issuance of guidance documents rises. For the total number of documents (the sum of rules and guidance), the distance effect remains negative but is smaller in magnitude (–0.013, p&lt;0.05). The proportion model further confirms that the share of formal rules falls over time, with a significant decrease of 0.002 (p&lt;0.01) per month. The constant estimates in all models are highly significant, and the models for rules and proportion explain a moderate share of the variance (adjusted R² of 0.293 and 0.373, respectively), while those for guidance and total documents show more modest explanatory power.</p>
+<p>The analysis also controls for broader contextual factors. The presidential transition indicator is not statistically significant in any specification, suggesting that the designated transition months do not, by themselves, account for the observed trends. However, the Democratic party indicator (D) is significant in the proportion model (0.047, p&lt;0.1), implying that during years under a Democratic president, the proportion of formal rules is modestly higher. Additionally, the interaction term between treatment and distance is consistently negative, though not statistically significant across the models, hinting at some attenuation of the distance effect in the treatment period. Overall, the findings point to a clear shift away from formal rulemaking over time, with an increase in guidance documents that, however, does not fully offset the decline in total regulatory output.</p>
+<section id="appendix---rd-of-proportion-of-rules" class="level3">
+<h3 class="anchored" data-anchor-id="appendix---rd-of-proportion-of-rules">Appendix - RD of Proportion of rules</h3>
+<p>We ran an RD regression but saw no significant short-term effects of <em>Loper Bright</em> and <em>Ohio v. EPA</em> on rulemaking output.</p>
+<div class="cell">
+<div class="cell-output cell-output-stderr">
+<pre><code>`geom_smooth()` using formula = 'y ~ x'
+`geom_smooth()` using formula = 'y ~ x'</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="DataWatch_files/figure-html/unnamed-chunk-23-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co">#reality check </span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="co"># ‘Year’ model (annual totals)</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>beta_year <span class="ot">&lt;-</span> <span class="fu">coef</span>(<span class="fu">lm</span>(total_rules <span class="sc">~</span> year, <span class="at">data =</span> unified_yearly))[<span class="dv">2</span>]</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>beta_year</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     year 
+-4.503846 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># [1] -4.50  (≈ rules per *calendar* year)</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Make an “average-monthly” outcome for the same regression</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>unified_yearly <span class="ot">&lt;-</span> unified_yearly <span class="sc">%&gt;%</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">avg_monthly_rules =</span> total_rules <span class="sc">/</span> <span class="dv">12</span>)</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a><span class="fu">coef</span>(<span class="fu">lm</span>(avg_monthly_rules <span class="sc">~</span> year, unified_yearly))[<span class="dv">2</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>      year 
+-0.3753205 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ≈ -0.375   (-0.375 ≈ -4.50 / 12)</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Now create a pure month-index that rises 1,2,3,… from Jan-2000 to Dec-2024</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>unified_data  <span class="ot">&lt;-</span> unified_data <span class="sc">%&gt;%</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">month_index =</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">n</span>())</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a><span class="fu">coef</span>(<span class="fu">lm</span>(rules <span class="sc">~</span> month_index, unified_data))[<span class="dv">2</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>month_index 
+-0.03117835 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ≈ -0.375   (matches the annualised decline)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>

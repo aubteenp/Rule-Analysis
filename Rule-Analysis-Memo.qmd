@@ -498,4 +498,3 @@ Now, let's visualize the RD regression, displaying the number of rules published
 ```{r}
 print(plot_prop)
 ```
-
