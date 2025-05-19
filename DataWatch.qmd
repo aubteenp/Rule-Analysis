@@ -252,7 +252,7 @@ make_plot <- function(df_yearly, df_monthly, yvar, ylab, title) {
   # compute OLS yearly trend for the yearly data
   form <- reformulate("year", yvar)          # e.g. total_rules ~ year
   slope <- coef(lm(form, df_yearly))[2]
-  slope_lbl <- paste0("Slope = ", round(slope, 3))
+  slope_lbl <- paste0("Annual Slope = ", round(slope, 3))
   
   # Create the plot with both yearly trend and monthly data points
   ggplot() +
@@ -462,7 +462,7 @@ make_plot_monthly <- function(df_monthly, yvar, ylab, title) {
   form <- reformulate("date_decimal", yvar)
   model <- lm(form, df_monthly)
   slope <- coef(model)[2]
-  slope_lbl <- paste0("Annual slope = ", round(slope, 3))  # Annualized for easier interpretation
+  slope_lbl <- paste0("Annual Slope = ", round(slope, 3))  # Annualized for easier interpretation
   
   ggplot(df_monthly, aes(x = date_decimal, y = .data[[yvar]])) +
     geom_point(colour = "gray40", size = 0.8, alpha = 0.5) +  # Smaller points with some transparency
